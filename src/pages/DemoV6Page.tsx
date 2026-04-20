@@ -37,680 +37,148 @@ interface ScenarioConfig {
 
 const SCENARIOS: ScenarioConfig[] = [
   {
-    id: 'pool', name: 'Piscina', emoji: '🏊', description: 'bright · shallow · clear',
-    accentColor: '#6ee3ff', highlightHex: '#6ee3ff', waterHex: '#0087c8',
-    direction: 'top', specular: 2.5, glow: 0.8,
-    level: 0.45, tintOpacity: 0.14, distortionScale: 1.4, rippleStrength: 1.0, rippleRadius: 0.025,
-    bgGradient: 'linear-gradient(175deg, #041e3c 0%, #012240 100%)',
-    gridColor: 'rgba(80,200,255,0.07)',
+    id: 'clear-water',
+    name: 'Clear Water',
+    emoji: '💧',
+    description: 'transparent · clean · reactive',
+    accentColor: '#8fe8ff',
+    highlightHex: '#c8f6ff',
+    waterHex: '#1f9dff',
+    direction: 'top',
+    specular: 3.2,
+    glow: 0.9,
+    level: 0.46,
+    tintOpacity: 0.10,
+    distortionScale: 1.45,
+    rippleStrength: 1.05,
+    rippleRadius: 0.024,
+    bgGradient: 'linear-gradient(175deg, #06182e 0%, #0a2748 100%)',
+    gridColor: 'rgba(120,210,255,0.075)',
   },
   {
-    id: 'tropical', name: 'Tropical', emoji: '🌴', description: 'warm · turquoise · sunny',
-    accentColor: '#00c88a', highlightHex: '#ffe078', waterHex: '#00a87a',
-    direction: 'top-right', specular: 3.5, glow: 0.6,
-    level: 0.50, tintOpacity: 0.18, distortionScale: 1.0, rippleStrength: 0.8, rippleRadius: 0.030,
-    bgGradient: 'linear-gradient(175deg, #051a18 0%, #031410 100%)',
-    gridColor: 'rgba(80,220,160,0.065)',
+    id: 'wine',
+    name: 'Wine',
+    emoji: '🍷',
+    description: 'rich · full-bodied · complex',
+    accentColor: '#d72b2b',
+    highlightHex: '#700038',
+    waterHex: '#3c0202',
+    direction: 'top-right',
+    specular: 1.35,
+    glow: 0.22,
+    level: 0.84,
+    tintOpacity: 0.92,
+    distortionScale: 0.34,
+    rippleStrength: 0.24,
+    rippleRadius: 0.050,
+    bgGradient: 'linear-gradient(175deg, #130000 0%, #240202 100%)',
+    gridColor: 'rgba(255,60,60,0.03)',
   },
   {
-    id: 'deep', name: 'Mar Profundo', emoji: '🌊', description: 'dark · vast · bioluminescent',
-    accentColor: '#2060ff', highlightHex: '#2060ff', waterHex: '#00030f',
-    direction: 'top', specular: 1.8, glow: 2.0,
-    level: 0.95, tintOpacity: 0.30, distortionScale: 2.0, rippleStrength: 1.2, rippleRadius: 0.040,
-    bgGradient: 'linear-gradient(175deg, #000008 0%, #00000f 100%)',
-    gridColor: 'rgba(20,60,200,0.04)',
-    autoStart: 'sea', autoIntensity: 0.3,
+    id: 'tropical-sea',
+    name: 'Tropical Sea Water',
+    emoji: '🌊',
+    description: 'turquoise · bright · shallow',
+    accentColor: '#35f0d0',
+    highlightHex: '#fff29a',
+    waterHex: '#00c2a8',
+    direction: 'top-right',
+    specular: 3.9,
+    glow: 0.65,
+    level: 0.50,
+    tintOpacity: 0.16,
+    distortionScale: 1.15,
+    rippleStrength: 0.88,
+    rippleRadius: 0.030,
+    bgGradient: 'linear-gradient(175deg, #04201c 0%, #08382d 100%)',
+    gridColor: 'rgba(90,255,220,0.06)',
+    autoStart: 'sea',
+    autoIntensity: 0.22,
   },
   {
-    id: 'toxic', name: 'Toxic Waste', emoji: '☢️', description: 'viscous · neon · corrosive',
-    accentColor: '#80ff00', highlightHex: '#c8ff00', waterHex: '#0a1f00',
-    direction: 'top', specular: 5.0, glow: 1.6,
-    level: 0.80, tintOpacity: 0.38, distortionScale: 0.5, rippleStrength: 0.35, rippleRadius: 0.045,
-    bgGradient: 'linear-gradient(175deg, #060d00 0%, #0a1200 100%)',
-    gridColor: 'rgba(100,255,0,0.05)',
+    id: 'blood',
+    name: 'Blood',
+    emoji: '🩸',
+    description: 'dense · organic · crimson',
+    accentColor: '#d72b2b',
+    highlightHex: '#700000',
+    waterHex: '#3c0202',
+    direction: 'top-right',
+    specular: 1.35,
+    glow: 0.22,
+    level: 0.84,
+    tintOpacity: 0.92,
+    distortionScale: 0.34,
+    rippleStrength: 0.24,
+    rippleRadius: 0.050,
+    bgGradient: 'linear-gradient(175deg, #130000 0%, #240202 100%)',
+    gridColor: 'rgba(255,60,60,0.03)',
   },
   {
-    id: 'blood', name: 'Blood', emoji: '🩸', description: 'thick · viscous · crimson',
-    accentColor: '#cc2000', highlightHex: '#ff3000', waterHex: '#280000',
-    direction: 'top-right', specular: 1.5, glow: 0.4,
-    level: 0.88, tintOpacity: 0.48, distortionScale: 0.3, rippleStrength: 0.25, rippleRadius: 0.050,
-    bgGradient: 'linear-gradient(175deg, #0c0000 0%, #100000 100%)',
-    gridColor: 'rgba(200,20,0,0.04)',
+    id: 'toxic',
+    name: 'Toxic Fluid',
+    emoji: '☢️',
+    description: 'neon · corrosive · unstable',
+    accentColor: '#b6ff00',
+    highlightHex: '#ecff75',
+    waterHex: '#163300',
+    direction: 'top',
+    specular: 4.8,
+    glow: 1.55,
+    level: 0.78,
+    tintOpacity: 0.40,
+    distortionScale: 0.58,
+    rippleStrength: 0.38,
+    rippleRadius: 0.045,
+    bgGradient: 'linear-gradient(175deg, #081100 0%, #102000 100%)',
+    gridColor: 'rgba(180,255,0,0.05)',
+    autoStart: 'rain',
+    autoIntensity: 0.12,
   },
   {
-    id: 'pond', name: 'Pond', emoji: '🐸', description: 'murky · still · algae',
-    accentColor: '#668833', highlightHex: '#88c050', waterHex: '#080f02',
-    direction: 'top-left', specular: 1.2, glow: 0.25,
-    level: 0.72, tintOpacity: 0.28, distortionScale: 0.9, rippleStrength: 0.6, rippleRadius: 0.035,
-    bgGradient: 'linear-gradient(175deg, #060e02 0%, #040a01 100%)',
-    gridColor: 'rgba(80,140,20,0.05)',
+    id: 'oil',
+    name: 'Oil',
+    emoji: '🛢️',
+    description: 'dark · viscous · iridescent',
+    accentColor: '#8b7cff',
+    highlightHex: '#d1a6ff',
+    waterHex: '#05060a',
+    direction: 'top-left',
+    specular: 2.2,
+    glow: 0.55,
+    level: 0.90,
+    tintOpacity: 0.60,
+    distortionScale: 0.22,
+    rippleStrength: 0.16,
+    rippleRadius: 0.060,
+    bgGradient: 'linear-gradient(175deg, #040406 0%, #0a0b12 100%)',
+    gridColor: 'rgba(130,120,255,0.035)',
   },
   {
-    id: 'aquarium', name: 'Aquarium', emoji: '🐠', description: 'bright · precise · curated',
-    accentColor: '#50c8e8', highlightHex: '#a0eeff', waterHex: '#001833',
-    direction: 'top', specular: 3.2, glow: 1.0,
-    level: 0.60, tintOpacity: 0.20, distortionScale: 1.6, rippleStrength: 0.7, rippleRadius: 0.018,
-    bgGradient: 'linear-gradient(175deg, #040f1e 0%, #050d1a 100%)',
-    gridColor: 'rgba(80,200,255,0.06)',
+    id: 'mercury',
+    name: 'Mercury',
+    emoji: '⚪',
+    description: 'metallic · heavy · reflective',
+    accentColor: '#d7dde8',
+    highlightHex: '#ffffff',
+    waterHex: '#8e97a4',
+    direction: 'top',
+    specular: 5.4,
+    glow: 0.9,
+    level: 0.72,
+    tintOpacity: 0.34,
+    distortionScale: 0.14,
+    rippleStrength: 0.12,
+    rippleRadius: 0.040,
+    bgGradient: 'linear-gradient(175deg, #171b22 0%, #2a313b 100%)',
+    gridColor: 'rgba(230,235,245,0.05)',
   },
 ];
-
-// ─── Scene asset primitives ───────────────────────────────────────────────────
-
-/** Top-down fish silhouette – body oval, forked tail, dorsal fin, eye. */
-function Fish({
-  x, y, size = 60, color, tailColor, angle = 0, depth = 0.35,
-}: {
-  x: string; y: string; size?: number; color: string; tailColor?: string;
-  angle?: number; depth?: number;
-}) {
-  const tc = tailColor ?? color;
-  return (
-    <WaterItem depth={depth} style={{ position: 'absolute', left: x, top: y, pointerEvents: 'none' }}>
-      <svg width={size} height={size * 0.5} viewBox="0 0 80 40"
-        style={{ transform: `rotate(${angle}deg)`, display: 'block', overflow: 'visible' }}>
-        {/* Tail */}
-        <path d="M10,20 L0,7 L5,20 L0,33 Z" fill={tc} />
-        {/* Body */}
-        <ellipse cx="44" cy="20" rx="27" ry="14" fill={color} />
-        {/* Dorsal fin */}
-        <ellipse cx="44" cy="7" rx="9" ry="3.5" fill={color} opacity={0.65} />
-        {/* Eye */}
-        <circle cx="65" cy="16" r="3.5" fill="rgba(0,0,0,0.6)" />
-        <circle cx="66" cy="15" r="1.3" fill="rgba(255,255,255,0.75)" />
-      </svg>
-    </WaterItem>
-  );
-}
-
-/** Striped clownfish (Nemo) – orange with white bars. */
-function Clownfish({ x, y, size = 52, angle = 0, depth = 0.3 }: {
-  x: string; y: string; size?: number; angle?: number; depth?: number;
-}) {
-  return (
-    <WaterItem depth={depth} style={{ position: 'absolute', left: x, top: y, pointerEvents: 'none' }}>
-      <svg width={size} height={size * 0.55} viewBox="0 0 80 44"
-        style={{ transform: `rotate(${angle}deg)`, display: 'block', overflow: 'visible' }}>
-        <path d="M10,22 L0,9 L5,22 L0,35 Z" fill="#e05800" />
-        <ellipse cx="44" cy="22" rx="26" ry="15" fill="#f07010" />
-        {/* White bars */}
-        <rect x="32" y="8" width="9" height="28" rx="4" fill="rgba(255,255,255,0.85)" />
-        <rect x="50" y="10" width="7" height="24" rx="3" fill="rgba(255,255,255,0.7)" />
-        <ellipse cx="44" cy="8" rx="8" ry="3" fill="#f07010" opacity={0.7} />
-        <circle cx="64" cy="18" r="3.5" fill="rgba(0,0,0,0.55)" />
-        <circle cx="65" cy="17" r="1.3" fill="rgba(255,255,255,0.8)" />
-      </svg>
-    </WaterItem>
-  );
-}
-
-/** Lily pad – green circle with V-notch and vein lines. */
-function LilyPad({ x, y, size = 70, rot = 0, depth = 0.06 }: {
-  x: string; y: string; size?: number; rot?: number; depth?: number;
-}) {
-  return (
-    <WaterItem depth={depth} style={{ position: 'absolute', left: x, top: y, pointerEvents: 'none' }}>
-      <svg width={size} height={size} viewBox="0 0 100 100"
-        style={{ transform: `rotate(${rot}deg)`, display: 'block' }}>
-        {/* Pad with notch */}
-        <path d="M50,50 L63,3 A49,49 0 1,0 37,3 Z"
-          fill="#2e7d00" stroke="#1a5200" strokeWidth="1.5" opacity={0.92} />
-        {/* Veins */}
-        {[0, 45, 90, 135, 200, 250, 300].map((a, i) => {
-          const r = (a * Math.PI) / 180;
-          return <line key={i} x1="50" y1="50"
-            x2={50 + Math.cos(r) * 46} y2={50 + Math.sin(r) * 46}
-            stroke="rgba(0,80,0,0.4)" strokeWidth="1" />;
-        })}
-        {/* Flower */}
-        <circle cx="50" cy="50" r="5" fill="#ff6080" opacity={0.7} />
-        <circle cx="50" cy="50" r="3" fill="#ffd060" opacity={0.9} />
-      </svg>
-    </WaterItem>
-  );
-}
-
-/** Starfish – 5-pointed with texture. */
-function Starfish({ x, y, size = 44, rot = 0, color = '#e8720a', depth = 0.75 }: {
-  x: string; y: string; size?: number; rot?: number; color?: string; depth?: number;
-}) {
-  // 5-point star clip-path
-  const pts = Array.from({ length: 10 }, (_, i) => {
-    const a = (i * 36 - 90) * Math.PI / 180;
-    const r = i % 2 === 0 ? 48 : 20;
-    return `${50 + r * Math.cos(a)}% ${50 + r * Math.sin(a)}%`;
-  }).join(', ');
-  return (
-    <WaterItem depth={depth} style={{
-      position: 'absolute', left: x, top: y, width: size, height: size,
-      pointerEvents: 'none', transform: `rotate(${rot}deg)`,
-      background: color,
-      clipPath: `polygon(${pts})`,
-      boxShadow: `inset 0 0 8px rgba(0,0,0,0.3)`,
-    }} />
-  );
-}
-
-/** Rounded rock/stone. */
-function Rock({ x, y, w = 36, h = 26, rot = 0, color = 'rgba(110,105,100,0.8)', depth = 0.80 }: {
-  x: string; y: string; w?: number; h?: number; rot?: number; color?: string; depth?: number;
-}) {
-  return (
-    <WaterItem depth={depth} style={{
-      position: 'absolute', left: x, top: y, pointerEvents: 'none',
-    }}>
-      <div style={{
-        width: w, height: h, borderRadius: '50%',
-        background: `radial-gradient(ellipse at 35% 35%, ${color}, rgba(60,55,50,0.9))`,
-        transform: `rotate(${rot}deg)`,
-        boxShadow: '2px 3px 8px rgba(0,0,0,0.5)',
-      }} />
-    </WaterItem>
-  );
-}
-
-/** Glowing bioluminescent particle. */
-function BioDot({ x, y, size = 5, color = '#00ffcc', depth = 0.45 }: {
-  x: string; y: string; size?: number; color?: string; depth?: number;
-}) {
-  return (
-    <WaterItem depth={depth} style={{ position: 'absolute', left: x, top: y, pointerEvents: 'none' }}>
-      <div style={{
-        width: size, height: size, borderRadius: '50%',
-        background: color,
-        boxShadow: `0 0 ${size * 2}px ${size}px ${color}60, 0 0 ${size * 5}px ${color}30`,
-      }} />
-    </WaterItem>
-  );
-}
-
-// ─── Scene: Piscina (pool) ────────────────────────────────────────────────────
-// View from above: tiled bottom, lane dividers, pool drain.
-
-function PoolScene() {
-  return (
-    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-      {/* Tiled pool floor */}
-      <WaterItem depth={0.82} style={{ position: 'absolute', inset: 0 }}>
-        <div style={{
-          width: '100%', height: '100%',
-          background: '#1878c0',
-          backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.18) 1.5px, transparent 1.5px),
-            linear-gradient(90deg, rgba(255,255,255,0.18) 1.5px, transparent 1.5px),
-            linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)
-          `,
-          backgroundSize: '96px 96px, 96px 96px, 32px 32px, 32px 32px',
-        }} />
-      </WaterItem>
-
-      {/* Black tile border around pool edge */}
-      <WaterItem depth={0.78} style={{ position: 'absolute', inset: 0 }}>
-        <div style={{
-          width: '100%', height: '100%',
-          boxShadow: 'inset 0 0 0 18px rgba(0,20,60,0.55)',
-          borderRadius: 0,
-          pointerEvents: 'none',
-        }} />
-      </WaterItem>
-
-      {/* Lane ropes – 4 ropes running left–right */}
-      {[22, 37, 54, 69].map((pct, i) => (
-        <WaterItem key={i} depth={0.12} style={{
-          position: 'absolute', top: `${pct}%`, left: '3%', right: '3%', height: 10,
-          transform: 'translateY(-50%)',
-        }}>
-          <div style={{
-            width: '100%', height: '100%', borderRadius: 5,
-            backgroundImage: `repeating-linear-gradient(
-              90deg,
-              #e03010 0px, #e03010 14px,
-              #ffffff 14px, #ffffff 28px
-            )`,
-          }} />
-        </WaterItem>
-      ))}
-
-      {/* Pool drain — center */}
-      <WaterItem depth={0.92} style={{
-        position: 'absolute', left: '32%', top: '50%',
-        transform: 'translate(-50%,-50%)', pointerEvents: 'none',
-      }}>
-        <svg width={56} height={56} viewBox="0 0 56 56">
-          <circle cx="28" cy="28" r="27" fill="none" stroke="rgba(0,40,120,0.7)" strokeWidth="3" />
-          <circle cx="28" cy="28" r="20" fill="none" stroke="rgba(0,40,120,0.5)" strokeWidth="2" />
-          {/* Grate lines */}
-          {[-8, -2, 4, 10].map(d => (
-            <g key={d}>
-              <line x1={28 + d} y1="10" x2={28 + d} y2="46"
-                stroke="rgba(0,30,100,0.6)" strokeWidth="2" />
-              <line x1="10" y1={28 + d} x2="46" y2={28 + d}
-                stroke="rgba(0,30,100,0.6)" strokeWidth="2" />
-            </g>
-          ))}
-          <circle cx="28" cy="28" r="27" fill="none" stroke="rgba(0,40,120,0.7)" strokeWidth="3" />
-        </svg>
-      </WaterItem>
-
-      {/* Second drain */}
-      <WaterItem depth={0.92} style={{
-        position: 'absolute', left: '32%', top: '82%',
-        transform: 'translate(-50%,-50%)', pointerEvents: 'none',
-      }}>
-        <svg width={40} height={40} viewBox="0 0 56 56">
-          <circle cx="28" cy="28" r="27" fill="none" stroke="rgba(0,40,120,0.6)" strokeWidth="3" />
-          {[-6, 0, 6].map(d => (
-            <g key={d}>
-              <line x1={28 + d} y1="8" x2={28 + d} y2="48" stroke="rgba(0,30,100,0.5)" strokeWidth="2.5" />
-              <line x1="8" y1={28 + d} x2="48" y2={28 + d} stroke="rgba(0,30,100,0.5)" strokeWidth="2.5" />
-            </g>
-          ))}
-        </svg>
-      </WaterItem>
-
-      {/* Lane numbers on floor */}
-      {[11, 28, 44, 60, 78].map((pct, i) => (
-        <WaterItem key={i} depth={0.88} style={{
-          position: 'absolute', left: '4%', top: `${pct}%`,
-          transform: 'translateY(-50%)', pointerEvents: 'none',
-        }}>
-          <div style={{
-            fontFamily: C.mono, fontSize: '1.1rem', fontWeight: 700,
-            color: 'rgba(255,255,255,0.25)', userSelect: 'none',
-          }}>{i + 1}</div>
-        </WaterItem>
-      ))}
-    </div>
-  );
-}
-
-// ─── Scene: Tropical (top-down beach/reef) ────────────────────────────────────
-
-function TropicalScene() {
-  return (
-    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-      {/* Sandy reef floor */}
-      <WaterItem depth={0.78} style={{ position: 'absolute', inset: 0 }}>
-        <div style={{
-          width: '100%', height: '100%',
-          background: 'radial-gradient(ellipse at 30% 50%, #c4a86e 0%, #b09050 40%, #8a7038 100%)',
-          backgroundImage: `repeating-linear-gradient(
-            20deg, transparent 0px, transparent 12px,
-            rgba(255,225,155,0.12) 12px, rgba(255,225,155,0.12) 13px
-          )`,
-        }} />
-      </WaterItem>
-
-      {/* Coral formations */}
-      {[
-        { x: '8%',  y: '18%', w: 28, h: 22, color: 'rgba(220,80,80,0.85)'  },
-        { x: '14%', y: '60%', w: 22, h: 34, color: 'rgba(255,140,60,0.85)' },
-        { x: '42%', y: '10%', w: 18, h: 28, color: 'rgba(240,80,120,0.80)' },
-        { x: '38%', y: '75%', w: 24, h: 18, color: 'rgba(200,60,180,0.80)' },
-        { x: '55%', y: '30%', w: 20, h: 30, color: 'rgba(220,100,50,0.80)' },
-      ].map((c, i) => (
-        <WaterItem key={i} depth={0.60} style={{
-          position: 'absolute', left: c.x, top: c.y, pointerEvents: 'none',
-        }}>
-          <svg width={c.w + 20} height={c.h + 20} viewBox="0 0 60 70" style={{ display: 'block' }}>
-            {/* Coral branches */}
-            <line x1="30" y1="65" x2="30" y2="30" stroke={c.color} strokeWidth="5" strokeLinecap="round" />
-            <line x1="30" y1="45" x2="10" y2="20" stroke={c.color} strokeWidth="4" strokeLinecap="round" />
-            <line x1="30" y1="45" x2="50" y2="18" stroke={c.color} strokeWidth="4" strokeLinecap="round" />
-            <line x1="30" y1="30" x2="18" y2="8"  stroke={c.color} strokeWidth="3" strokeLinecap="round" />
-            <line x1="30" y1="30" x2="44" y2="10" stroke={c.color} strokeWidth="3" strokeLinecap="round" />
-            {/* Tips */}
-            {[[10,20],[50,18],[18,8],[44,10],[30,30]].map(([cx,cy],j) => (
-              <circle key={j} cx={cx} cy={cy} r={4} fill={c.color} opacity={0.9} />
-            ))}
-          </svg>
-        </WaterItem>
-      ))}
-
-      {/* Starfish on sand */}
-      <Starfish x="22%" y="68%" rot={15}  color="#e07010" depth={0.78} />
-      <Starfish x="47%" y="55%" rot={72}  color="#e85020" size={36} depth={0.80} />
-      <Starfish x="10%" y="38%" rot={130} color="#d06820" size={30} depth={0.76} />
-
-      {/* Rocks */}
-      <Rock x="5%"  y="72%" w={44} h={32} rot={20} depth={0.82} color="rgba(120,100,80,0.85)" />
-      <Rock x="50%" y="78%" w={36} h={24} rot={-15} depth={0.80} color="rgba(130,115,85,0.8)" />
-
-      {/* Tropical fish (viewed from above) */}
-      <Fish x="18%" y="28%" color="#ffd020" tailColor="#e0a000" angle={30}  depth={0.30} size={55} />
-      <Fish x="30%" y="62%" color="#2090e0" tailColor="#1060a8" angle={-20} depth={0.28} size={48} />
-      <Fish x="48%" y="40%" color="#e84040" tailColor="#b02020" angle={85}  depth={0.32} size={44} />
-      <Fish x="8%"  y="48%" color="#40c860" tailColor="#209040" angle={160} depth={0.25} size={50} />
-
-      {/* Palm canopy shadows (top-down: just a dark soft circle = shade) */}
-      {[
-        { x: '2%',  y: '2%'  },
-        { x: '52%', y: '1%'  },
-        { x: '1%',  y: '82%' },
-        { x: '52%', y: '80%' },
-      ].map((p, i) => (
-        <WaterItem key={i} depth={0.05} style={{
-          position: 'absolute', left: p.x, top: p.y, pointerEvents: 'none',
-        }}>
-          <div style={{
-            width: 120, height: 120, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(0,40,0,0.50) 20%, rgba(10,60,10,0.30) 55%, transparent 75%)',
-          }} />
-        </WaterItem>
-      ))}
-    </div>
-  );
-}
-
-// ─── Scene: Pond ──────────────────────────────────────────────────────────────
-
-function PondScene() {
-  return (
-    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-      {/* Murky silty bottom */}
-      <WaterItem depth={0.80} style={{ position: 'absolute', inset: 0 }}>
-        <div style={{
-          width: '100%', height: '100%',
-          background: 'radial-gradient(ellipse at 40% 55%, #2a3818 0%, #1a2410 50%, #0e1608 100%)',
-        }} />
-      </WaterItem>
-
-      {/* Rocks on bottom */}
-      <Rock x="5%"  y="12%"  w={55} h={38} rot={10}  color="rgba(90,85,75,0.85)" depth={0.82} />
-      <Rock x="45%" y="8%"   w={40} h={28} rot={-20} color="rgba(80,75,65,0.80)" depth={0.84} />
-      <Rock x="4%"  y="70%"  w={62} h={42} rot={5}   color="rgba(85,80,70,0.85)" depth={0.82} />
-      <Rock x="46%" y="72%"  w={35} h={25} rot={30}  color="rgba(95,88,72,0.80)" depth={0.83} />
-
-      {/* Reeds at edges (top-down: oval clusters) */}
-      {[
-        { x: '-1%', y: '30%' }, { x: '-1%', y: '50%' },
-        { x: '53%', y: '20%' }, { x: '53%', y: '65%' },
-      ].map((p, i) => (
-        <WaterItem key={i} depth={0.10} style={{ position: 'absolute', left: p.x, top: p.y, pointerEvents: 'none' }}>
-          <div style={{ display: 'flex', gap: 4, flexDirection: i > 1 ? 'row-reverse' : 'row' }}>
-            {[20, 30, 22, 28, 18].map((h, j) => (
-              <div key={j} style={{
-                width: 5, height: h,
-                background: `rgba(${50 + j * 10},${80 + j * 8},${20 + j * 5},0.85)`,
-                borderRadius: 3,
-                transform: `rotate(${(j - 2) * 8}deg)`,
-              }} />
-            ))}
-          </div>
-        </WaterItem>
-      ))}
-
-      {/* Lily pads */}
-      <LilyPad x="15%"  y="18%"  size={80}  rot={20}   depth={0.05} />
-      <LilyPad x="30%"  y="40%"  size={95}  rot={-35}  depth={0.04} />
-      <LilyPad x="5%"   y="54%"  size={70}  rot={110}  depth={0.06} />
-      <LilyPad x="40%"  y="60%"  size={85}  rot={60}   depth={0.05} />
-      <LilyPad x="22%"  y="74%"  size={65}  rot={-80}  depth={0.07} />
-
-      {/* Koi fish (top-down) */}
-      <Fish x="22%" y="32%" color="#f06020" tailColor="#c04010" angle={45}   depth={0.28} size={65} />
-      <Fish x="10%" y="44%" color="#f8f8f8" tailColor="#e0e0e0" angle={-60}  depth={0.30} size={55} />
-      <Fish x="38%" y="25%" color="#282828" tailColor="#181818" angle={130}  depth={0.26} size={50} />
-      <Fish x="32%" y="68%" color="#e85030" tailColor="#b02818" angle={-140} depth={0.32} size={58} />
-
-      {/* Fallen leaves floating */}
-      {[
-        { x: '8%',  y: '25%', r: 20,  c: 'rgba(120,70,20,0.80)' },
-        { x: '28%', y: '55%', r: -30, c: 'rgba(90,60,15,0.75)'  },
-        { x: '44%', y: '36%', r: 55,  c: 'rgba(140,90,25,0.80)' },
-        { x: '18%', y: '82%', r: -10, c: 'rgba(110,75,20,0.75)' },
-      ].map((l, i) => (
-        <WaterItem key={i} depth={0.08} style={{
-          position: 'absolute', left: l.x, top: l.y, pointerEvents: 'none',
-        }}>
-          <div style={{
-            width: 36, height: 18, borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
-            background: l.c, transform: `rotate(${l.r}deg)`,
-            boxShadow: '1px 2px 4px rgba(0,0,0,0.3)',
-          }} />
-        </WaterItem>
-      ))}
-    </div>
-  );
-}
-
-// ─── Scene: Aquarium ──────────────────────────────────────────────────────────
-
-function AquariumScene() {
-  return (
-    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-      {/* Bright sandy bottom */}
-      <WaterItem depth={0.75} style={{ position: 'absolute', inset: 0 }}>
-        <div style={{
-          width: '100%', height: '100%',
-          background: 'linear-gradient(160deg, #e8dfc8 0%, #d4c8a4 40%, #c0b480 100%)',
-        }} />
-      </WaterItem>
-
-      {/* Caustic light patterns */}
-      {[
-        { x: '10%', y: '20%', r: 80 }, { x: '35%', y: '10%', r: 60 },
-        { x: '20%', y: '55%', r: 70 }, { x: '50%', y: '40%', r: 55 },
-        { x: '5%',  y: '75%', r: 50 }, { x: '42%', y: '70%', r: 65 },
-      ].map((c, i) => (
-        <WaterItem key={i} depth={0.72} style={{
-          position: 'absolute', left: c.x, top: c.y, pointerEvents: 'none',
-        }}>
-          <div style={{
-            width: c.r, height: c.r, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(200,230,255,0.28) 0%, rgba(180,220,255,0.08) 60%, transparent 80%)',
-          }} />
-        </WaterItem>
-      ))}
-
-      {/* Glass walls at edges */}
-      <WaterItem depth={0.05} style={{ position: 'absolute', inset: 0 }}>
-        <div style={{
-          width: '100%', height: '100%',
-          boxShadow: 'inset 0 0 0 14px rgba(160,220,255,0.20)',
-          pointerEvents: 'none',
-        }} />
-      </WaterItem>
-
-      {/* Coral — right side and center */}
-      {[
-        { x: '50%', y: '5%',  color: '#ff6080' },
-        { x: '6%',  y: '60%', color: '#ff8040' },
-        { x: '44%', y: '62%', color: '#c040e0' },
-      ].map((c, i) => (
-        <WaterItem key={i} depth={0.55} style={{ position: 'absolute', left: c.x, top: c.y, pointerEvents: 'none' }}>
-          <svg width={50} height={60} viewBox="0 0 60 75">
-            <line x1="30" y1="72" x2="30" y2="35" stroke={c.color} strokeWidth="6" strokeLinecap="round" />
-            <line x1="30" y1="50" x2="8"  y2="22" stroke={c.color} strokeWidth="5" strokeLinecap="round" />
-            <line x1="30" y1="50" x2="52" y2="20" stroke={c.color} strokeWidth="5" strokeLinecap="round" />
-            <line x1="30" y1="35" x2="14" y2="8"  stroke={c.color} strokeWidth="3.5" strokeLinecap="round" />
-            <line x1="30" y1="35" x2="46" y2="6"  stroke={c.color} strokeWidth="3.5" strokeLinecap="round" />
-            {[[8,22],[52,20],[14,8],[46,6],[30,35]].map(([cx,cy],j) => (
-              <circle key={j} cx={cx} cy={cy} r={5} fill={c.color} />
-            ))}
-          </svg>
-        </WaterItem>
-      ))}
-
-      {/* Sea anemone */}
-      <WaterItem depth={0.50} style={{ position: 'absolute', left: '28%', top: '62%', pointerEvents: 'none' }}>
-        <svg width={55} height={55} viewBox="0 0 60 60">
-          <circle cx="30" cy="30" r="14" fill="#e040a0" opacity={0.9} />
-          {Array.from({ length: 12 }, (_, i) => {
-            const a = (i * 30) * Math.PI / 180;
-            return <ellipse key={i} cx={30 + Math.cos(a) * 22} cy={30 + Math.sin(a) * 22}
-              rx="5" ry="9" fill="#ff60c0" opacity={0.8}
-              style={{ transform: `rotate(${i * 30}deg)`, transformOrigin: '30px 30px' }} />;
-          })}
-          <circle cx="30" cy="30" r="8" fill="#ffa0d0" opacity={0.9} />
-        </svg>
-      </WaterItem>
-
-      {/* Clownfish / tropical fish */}
-      <Clownfish x="15%" y="22%" angle={30}  depth={0.28} size={55} />
-      <Clownfish x="36%" y="48%" angle={-50} depth={0.30} size={46} />
-      <Fish x="8%"  y="40%" color="#3080ff" tailColor="#1050cc" angle={20}   depth={0.25} size={50} />
-      <Fish x="40%" y="22%" color="#ffd040" tailColor="#e8a000" angle={-100} depth={0.27} size={44} />
-      <Fish x="22%" y="72%" color="#60c840" tailColor="#3a9020" angle={70}   depth={0.33} size={40} />
-
-      {/* Bubbles */}
-      {[
-        { x: '12%', y: '8%',  s: 10 }, { x: '13%', y: '18%', s: 7  },
-        { x: '11%', y: '30%', s: 12 }, { x: '46%', y: '12%', s: 8  },
-        { x: '47%', y: '22%', s: 6  }, { x: '22%', y: '5%',  s: 9  },
-      ].map((b, i) => (
-        <WaterItem key={i} depth={0.04} style={{
-          position: 'absolute', left: b.x, top: b.y, pointerEvents: 'none',
-        }}>
-          <div style={{
-            width: b.s, height: b.s, borderRadius: '50%',
-            border: '1.5px solid rgba(160,220,255,0.65)',
-            background: 'rgba(200,240,255,0.08)',
-            boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.4)',
-          }} />
-        </WaterItem>
-      ))}
-    </div>
-  );
-}
-
-// ─── Scene: Deep Sea ─────────────────────────────────────────────────────────
-
-function DeepSeaScene() {
-  // Kraken tentacles: 8 bezier curves radiating from center
-  const tentacles = Array.from({ length: 8 }, (_, i) => {
-    const angle  = (i * 45) * Math.PI / 180;
-    const spread = 170;
-    const ex = 200 + Math.cos(angle) * spread;
-    const ey = 200 + Math.sin(angle) * spread;
-    const cp1x = 200 + Math.cos(angle - 0.4) * 75;
-    const cp1y = 200 + Math.sin(angle - 0.4) * 75;
-    const cp2x = ex - Math.cos(angle) * 50 + Math.sin(angle) * 35;
-    const cp2y = ey - Math.sin(angle) * 50 - Math.cos(angle) * 35;
-    return { d: `M200,200 C${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${ex.toFixed(1)},${ey.toFixed(1)}`, angle };
-  });
-
-  return (
-    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-      {/* Deep abyss texture */}
-      <WaterItem depth={0.95} style={{ position: 'absolute', inset: 0 }}>
-        <div style={{
-          width: '100%', height: '100%',
-          background: 'radial-gradient(ellipse at 28% 62%, #060010 0%, #020008 60%, #000004 100%)',
-        }} />
-      </WaterItem>
-
-      {/* Bioluminescent particles scattered */}
-      <BioDot x="5%"  y="22%" size={4} color="#00ffaa" depth={0.55} />
-      <BioDot x="18%" y="10%" size={3} color="#4080ff" depth={0.60} />
-      <BioDot x="8%"  y="62%" size={5} color="#00ccff" depth={0.50} />
-      <BioDot x="44%" y="18%" size={3} color="#80ffcc" depth={0.58} />
-      <BioDot x="40%" y="72%" size={4} color="#00aaff" depth={0.52} />
-      <BioDot x="52%" y="45%" size={3} color="#40ff80" depth={0.56} />
-      <BioDot x="14%" y="80%" size={4} color="#00ffcc" depth={0.54} />
-      <BioDot x="50%" y="80%" size={3} color="#6080ff" depth={0.60} />
-
-      {/* Ship — floating at surface, seen from above */}
-      <WaterItem depth={0.04} style={{
-        position: 'absolute', left: '16%', top: '4%',
-        transform: 'translateX(-50%)', pointerEvents: 'none',
-      }}>
-        <svg width={200} height={80} viewBox="0 0 200 80" style={{ display: 'block' }}>
-          {/* Hull */}
-          <path d="M24,40 Q100,6 176,40 Q100,74 24,40 Z"
-            fill="rgba(60,50,38,0.92)" stroke="rgba(80,70,50,0.6)" strokeWidth="1.5" />
-          {/* Deck planks */}
-          {[-12,-4,4,12].map(dy => (
-            <line key={dy} x1="45" y1={40+dy} x2="155" y2={40+dy}
-              stroke="rgba(100,85,60,0.5)" strokeWidth="1.5" />
-          ))}
-          {/* Cabin / bridge */}
-          <rect x="80" y="30" width="40" height="20" rx="5"
-            fill="rgba(80,65,45,0.90)" stroke="rgba(110,90,60,0.5)" strokeWidth="1" />
-          <rect x="90" y="22" width="20" height="12" rx="3"
-            fill="rgba(95,78,52,0.90)" />
-          {/* Mast */}
-          <circle cx="100" cy="40" r="3" fill="rgba(120,100,70,0.85)" />
-          {/* Wake */}
-          <path d="M24,40 Q10,36 4,40 Q10,44 24,40" fill="none"
-            stroke="rgba(120,180,255,0.35)" strokeWidth="2" />
-        </svg>
-      </WaterItem>
-
-      {/* Kraken body + tentacles */}
-      <WaterItem depth={0.88} style={{
-        position: 'absolute', left: '22%', top: '48%',
-        transform: 'translate(-50%,-50%)', pointerEvents: 'none',
-      }}>
-        <svg width={400} height={400} viewBox="0 0 400 400" style={{ display: 'block', overflow: 'visible' }}>
-          {/* Tentacle shadows / sucker details */}
-          {tentacles.map((t, i) => (
-            <path key={`sh${i}`} d={t.d}
-              stroke="rgba(10,0,25,0.6)" strokeWidth={22} fill="none"
-              strokeLinecap="round" />
-          ))}
-          {/* Main tentacles */}
-          {tentacles.map((t, i) => (
-            <path key={i} d={t.d}
-              stroke={`rgba(${30 + i * 5},${5},${60 + i * 4},0.92)`}
-              strokeWidth={16} fill="none" strokeLinecap="round" />
-          ))}
-          {/* Body */}
-          <ellipse cx="200" cy="200" rx="55" ry="70"
-            fill="rgba(15,3,40,0.97)" stroke="rgba(40,10,80,0.7)" strokeWidth="3" />
-          {/* Body texture */}
-          <ellipse cx="200" cy="200" rx="38" ry="50" fill="rgba(25,6,55,0.6)" />
-        </svg>
-      </WaterItem>
-
-      {/* Kraken glowing eyes — separate WaterItem at near-zero depth → very bright */}
-      <WaterItem depth={0.0} style={{
-        position: 'absolute',
-        left: 'calc(22% - 22px)',
-        top: 'calc(48% - 18px)',
-        pointerEvents: 'none',
-      }}>
-        <div style={{ display: 'flex', gap: 36 }}>
-          {[0, 1].map(i => (
-            <div key={i} style={{
-              width: 20, height: 20, borderRadius: '50%',
-              background: 'radial-gradient(circle, #ffffff 20%, #00ffcc 55%, #00cc88 100%)',
-              boxShadow: '0 0 8px 4px #00ffcc, 0 0 24px 10px rgba(0,255,200,0.45), 0 0 50px 20px rgba(0,200,150,0.20)',
-            }} />
-          ))}
-        </div>
-      </WaterItem>
-
-      {/* Anglerfish lurking bottom-right */}
-      <WaterItem depth={0.92} style={{
-        position: 'absolute', left: '46%', top: '66%',
-        transform: 'translate(-50%,-50%)', pointerEvents: 'none',
-      }}>
-        <svg width={100} height={70} viewBox="0 0 100 70">
-          <path d="M15,35 L0,20 L5,35 L0,50 Z" fill="rgba(15,5,30,0.9)" />
-          <ellipse cx="52" cy="35" rx="36" ry="24" fill="rgba(18,6,35,0.95)" />
-          <path d="M40,14 Q50,4 60,14" stroke="rgba(0,200,120,0.5)" strokeWidth="2" fill="none" />
-          <circle cx="60" cy="6" r="5"
-            fill="rgba(0,255,150,0.9)"
-            style={{ filter: 'drop-shadow(0 0 4px #00ff96)' }} />
-          <circle cx="72" cy="28" r="5" fill="rgba(0,0,0,0.7)" />
-          <circle cx="73" cy="27" r="2" fill="rgba(255,255,255,0.6)" />
-        </svg>
-      </WaterItem>
-    </div>
-  );
-}
 
 // ─── Scene router ─────────────────────────────────────────────────────────────
 
 function SceneContent({ id }: { id: string | null }) {
   switch (id) {
-    case 'pool':     return <PoolScene />;
-    case 'tropical': return <TropicalScene />;
-    case 'pond':     return <PondScene />;
-    case 'aquarium': return <AquariumScene />;
-    case 'deep':     return <DeepSeaScene />;
     default:         return null;
   }
 }
