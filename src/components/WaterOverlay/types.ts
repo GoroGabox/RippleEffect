@@ -135,6 +135,39 @@ export interface UseWaterItemReturn {
 // ─── Imperative handle ────────────────────────────────────────────────────────
 
 export interface WaterOverlayHandle {
-  /** Programmatic ripple at screen (x, y). */
-  splash: (x?: number, y?: number, strength?: number) => void;
+  /**
+   * Single ripple at screen (x, y).
+   * strength 0–2, default 0.9.
+   */
+  splash(x?: number, y?: number, strength?: number): void;
+
+  /**
+   * Rainfall — random drops scattered continuously over the surface.
+   * intensity 0–1 (default 0.5). Returns a cancel function.
+   * Call cancel() or stopEffects() to stop.
+   */
+  rain(intensity?: number): () => void;
+
+  /**
+   * Trail ripple at screen coordinates.
+   * Call repeatedly on pointer / touch move for a wake trail.
+   * strength 0–2, default 0.4.
+   */
+  trail(x: number, y: number, strength?: number): void;
+
+  /**
+   * Vibration — rapid scattered micro-pulses across the surface.
+   * strength 0–2, default 1. duration in ms, default 1000.
+   */
+  vibration(strength?: number, duration?: number): void;
+
+  /**
+   * Sweeping wave from one edge across the whole surface.
+   * direction: 'left'|'right'|'top'|'bottom', default 'right'.
+   * strength 0–2, default 1.
+   */
+  wave(direction?: 'left' | 'right' | 'top' | 'bottom', strength?: number): void;
+
+  /** Cancel all active programmatic effects (rain, vibration, wave). */
+  stopEffects(): void;
 }

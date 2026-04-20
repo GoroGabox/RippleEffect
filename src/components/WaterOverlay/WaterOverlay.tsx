@@ -9,7 +9,7 @@ import { WaterContext } from './context';
 import { VERT, SIM_FRAG, DISP_FRAG, OVERLAY_FRAG } from './shaders';
 import {
   LIGHT_PRESETS, QUALITY_PARAMS, DEFAULT_LIGHT,
-  autoQuality, lightDirToVec, computeDarkness,
+  autoQuality, lightDirToVec, computeDarkness, parseCssColor,
 } from './presets';
 
 // ─── Uniform bag (mutable ref, read each frame) ───────────────────────────────
@@ -17,10 +17,29 @@ import {
 interface URefs {
   distortionMult:    number;
   lightDir:          [number, number, number];
-  lightColor:        [number, number, number];
+  lightColor:        [number, number, number]; // specular / highlight color
+  waterColor:        [number, number, number]; // water body tint color
+  tintOpacity:       number;
   specularIntensity: number;
   glowIntensity:     number;
   depthScale:        number;
+}
+
+// ─── Splash queue ─────────────────────────────────────────────────────────────
+
+interface SplashCmd {
+  x:        number; // normalized 0–1
+  y:        number; // normalized 0–1 (GL: 0=bottom)
+  strength: number;
+  radius:   number;
+}
+
+// ─── Active looping effects ───────────────────────────────────────────────────
+
+interface ActiveEffects {
+  rain:      { active: boolean; intensity: number };
+  vibration: { active: boolean; strength: number; endTime: number };
+  wave:      { active: boolean; dir: 'left'|'right'|'top'|'bottom'; strength: number; phase: number; total: number };
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -55,7 +74,10 @@ export const WaterOverlay = forwardRef<WaterOverlayHandle, WaterOverlayProps>(
     const lightPreset: WaterLightPreset = light?.preset ?? 'noon';
     const baseLight = lightPreset !== 'custom' ? LIGHT_PRESETS[lightPreset] : DEFAULT_LIGHT;
     const lightDir          = light?.direction != null ? lightDirToVec(light.direction) : baseLight.lightDir;
-    const lightColor        = baseLight.lightColor;
+    // light.color overrides preset's specular color; material.tint overrides water body color
+    const lightColor: [number, number, number] = parseCssColor(light?.color) ?? baseLight.lightColor;
+    const waterColor: [number, number, number] = parseCssColor(material?.tint) ?? baseLight.waterColor;
+    const tintOpacity       = material?.opacity ?? 0.10;
     const specularIntensity = (light?.specular ?? 1) * baseLight.specularIntensity;
     const glowIntensity     = (light?.glow ?? 1) * baseLight.glowIntensity;
     const distortMult       = material?.distortionScale ?? 1;
@@ -67,11 +89,13 @@ export const WaterOverlay = forwardRef<WaterOverlayHandle, WaterOverlayProps>(
     // ── Mutable ref bag ───────────────────────────────────────────────────────
     const uRef = useRef<URefs>({
       distortionMult: distortMult,
-      lightDir, lightColor, specularIntensity, glowIntensity, depthScale,
+      lightDir, lightColor, waterColor, tintOpacity,
+      specularIntensity, glowIntensity, depthScale,
     });
     uRef.current = {
       distortionMult: distortMult,
-      lightDir, lightColor, specularIntensity, glowIntensity, depthScale,
+      lightDir, lightColor, waterColor, tintOpacity,
+      specularIntensity, glowIntensity, depthScale,
     };
 
     // ── DOM refs ──────────────────────────────────────────────────────────────
@@ -80,8 +104,17 @@ export const WaterOverlay = forwardRef<WaterOverlayHandle, WaterOverlayProps>(
     const filterRef     = useRef<SVGFilterElement>(null);
     const feImgNodeRef  = useRef<SVGFEImageElement>(null);
     const surfSlotRef   = useRef<HTMLDivElement>(null);
-    const splashPending = useRef<{ x: number; y: number; strength: number } | null>(null);
     const [, forceUpdate] = useReducer((n: number) => n + 1, 0);
+
+    // ── Splash queue — shared by pointer events + handle methods ─────────────
+    const splashQueue = useRef<SplashCmd[]>([]);
+
+    // ── Active looping effects — read each RAF frame ──────────────────────────
+    const effectsRef = useRef<ActiveEffects>({
+      rain:      { active: false, intensity: 0.5 },
+      vibration: { active: false, strength: 1, endTime: 0 },
+      wave:      { active: false, dir: 'right', strength: 1, phase: 0, total: 120 },
+    });
 
     const rawId    = useId();
     const filterId = `wo6-${rawId.replace(/:/g, '')}`;
@@ -89,13 +122,53 @@ export const WaterOverlay = forwardRef<WaterOverlayHandle, WaterOverlayProps>(
     // ── Handle ────────────────────────────────────────────────────────────────
     useImperativeHandle(ref, () => ({
       splash(x = window.innerWidth / 2, y = window.innerHeight / 2, strength = 0.9) {
-        splashPending.current = {
+        splashQueue.current.push({
           x: x / window.innerWidth,
           y: 1 - y / window.innerHeight,
           strength,
-        };
+          radius: rippleRadius,
+        });
       },
-    }), []);
+
+      rain(intensity = 0.5) {
+        const eff = effectsRef.current.rain;
+        eff.active    = true;
+        eff.intensity = Math.max(0, Math.min(1, intensity));
+        return () => { effectsRef.current.rain.active = false; };
+      },
+
+      trail(x: number, y: number, strength = 0.4) {
+        splashQueue.current.push({
+          x: x / window.innerWidth,
+          y: 1 - y / window.innerHeight,
+          strength,
+          radius: rippleRadius * 0.55,
+        });
+      },
+
+      vibration(strength = 1, duration = 1000) {
+        const eff = effectsRef.current.vibration;
+        eff.active  = true;
+        eff.strength = Math.max(0, strength);
+        eff.endTime  = Date.now() + duration;
+      },
+
+      wave(direction = 'right', strength = 1) {
+        const eff = effectsRef.current.wave;
+        eff.active  = true;
+        eff.dir     = direction;
+        eff.strength = Math.max(0, strength);
+        eff.phase   = 0;
+        eff.total   = 150; // ~2.5 s at 60 fps
+      },
+
+      stopEffects() {
+        effectsRef.current.rain.active      = false;
+        effectsRef.current.vibration.active = false;
+        effectsRef.current.wave.active      = false;
+        splashQueue.current.length          = 0;
+      },
+    }), [rippleRadius]);
 
     // ── Pointer events ────────────────────────────────────────────────────────
     const pointerDown = useRef(false);
@@ -107,22 +180,24 @@ export const WaterOverlay = forwardRef<WaterOverlayHandle, WaterOverlayProps>(
       // y lo detecta sin importar qué z-index o pointer-events tenga el contenedor.
       if ((e.target as Element).closest?.('[data-water-surface]')) return;
       pointerDown.current = true;
-      splashPending.current = {
+      splashQueue.current.push({
         x: e.clientX / window.innerWidth,
         y: 1 - e.clientY / window.innerHeight,
         strength: rippleStrength,
-      };
-    }, [rippleEnabled, rippleStrength]);
+        radius:   rippleRadius,
+      });
+    }, [rippleEnabled, rippleStrength, rippleRadius]);
 
     const handlePointerMove = useCallback((e: React.PointerEvent) => {
       if (!rippleEnabled || !pointerDown.current) return;
       if ((e.target as Element).closest?.('[data-water-surface]')) return;
-      splashPending.current = {
+      splashQueue.current.push({
         x: e.clientX / window.innerWidth,
         y: 1 - e.clientY / window.innerHeight,
         strength: rippleStrength * 0.45,
-      };
-    }, [rippleEnabled, rippleStrength]);
+        radius:   rippleRadius,
+      });
+    }, [rippleEnabled, rippleStrength, rippleRadius]);
 
     const handlePointerUp = useCallback(() => { pointerDown.current = false; }, []);
 
@@ -213,6 +288,8 @@ export const WaterOverlay = forwardRef<WaterOverlayHandle, WaterOverlayProps>(
           texelSize:         { value: texelSize },
           lightDir:          { value: new THREE.Vector3(...u.lightDir) },
           lightColor:        { value: new THREE.Vector3(...u.lightColor) },
+          tintColor:         { value: new THREE.Vector3(...u.waterColor) },
+          tintOpacity:       { value: u.tintOpacity },
           specularIntensity: { value: u.specularIntensity },
           glowIntensity:     { value: u.glowIntensity },
           depthScale:        { value: u.depthScale },
@@ -245,23 +322,90 @@ export const WaterOverlay = forwardRef<WaterOverlayHandle, WaterOverlayProps>(
         frameId = requestAnimationFrame(animate);
         frameCount++;
         const cur = uRef.current;
+        const eff = effectsRef.current;
+        const queue = splashQueue.current;
+        const now = Date.now();
 
-        // Splash injection
-        if (splashPending.current) {
-          const sp = splashPending.current;
-          splashPending.current = null;
-          simMat.uniforms.splashPos.value.set(sp.x, sp.y);
-          simMat.uniforms.splashStrength.value = sp.strength;
-        } else {
-          simMat.uniforms.splashStrength.value = 0;
+        // ── Active effects → push SplashCmds into queue ───────────────────────
+
+        // Rain — one drop per N frames
+        if (eff.rain.active) {
+          const dropsPerSec = Math.max(0.5, eff.rain.intensity * 25);
+          const period = Math.round(60 / dropsPerSec);
+          if (frameCount % Math.max(1, period) === 0) {
+            queue.push({
+              x:        Math.random(),
+              y:        0.1 + Math.random() * 0.8,
+              strength: 0.10 + Math.random() * 0.20,
+              radius:   0.007 + Math.random() * 0.010,
+            });
+          }
         }
 
-        // Pass 1 — wave simulation
-        simMat.uniforms.tSim.value = rtA.texture;
-        quad.material = simMat;
-        renderer.setRenderTarget(rtB);
-        renderer.render(scene, cam);
-        [rtA, rtB] = [rtB, rtA];
+        // Vibration — micro-pulses for a duration
+        if (eff.vibration.active) {
+          if (now > eff.vibration.endTime) {
+            eff.vibration.active = false;
+          } else if (frameCount % 2 === 0) {
+            queue.push({
+              x:        Math.random(),
+              y:        Math.random(),
+              strength: eff.vibration.strength * (0.04 + Math.random() * 0.09),
+              radius:   0.018 + Math.random() * 0.030,
+            });
+          }
+        }
+
+        // Wave — sweeping edge scan
+        if (eff.wave.active) {
+          if (eff.wave.phase >= eff.wave.total) {
+            eff.wave.active = false;
+          } else {
+            const t = eff.wave.phase / eff.wave.total;
+            eff.wave.phase++;
+            // Drop every 2 frames so the wave is spaced out
+            if (eff.wave.phase % 2 === 0) {
+              const dir = eff.wave.dir;
+              const sx = dir === 'right' ? t
+                       : dir === 'left'  ? 1 - t
+                       : 0.15 + Math.random() * 0.70;
+              const sy = dir === 'top'    ? 1 - t
+                       : dir === 'bottom' ? t
+                       : 0.15 + Math.random() * 0.70;
+              queue.push({
+                x: sx, y: sy,
+                strength: eff.wave.strength * 0.40,
+                radius:   0.014,
+              });
+            }
+          }
+        }
+
+        // ── Process up to 3 splashes per frame (multi-pass sim) ──────────────
+        const batchSize = Math.min(queue.length, 3);
+        if (batchSize === 0) {
+          // No splash this frame — run sim once with zero strength to let waves decay
+          simMat.uniforms.splashStrength.value = 0;
+          simMat.uniforms.tSim.value = rtA.texture;
+          quad.material = simMat;
+          renderer.setRenderTarget(rtB);
+          renderer.render(scene, cam);
+          [rtA, rtB] = [rtB, rtA];
+        } else {
+          for (let i = 0; i < batchSize; i++) {
+            const sp = queue.shift()!;
+            simMat.uniforms.splashPos.value.set(sp.x, sp.y);
+            simMat.uniforms.splashStrength.value = sp.strength;
+            simMat.uniforms.splashRadius.value   = sp.radius;
+            simMat.uniforms.tSim.value = rtA.texture;
+            quad.material = simMat;
+            renderer.setRenderTarget(rtB);
+            renderer.render(scene, cam);
+            [rtA, rtB] = [rtB, rtA];
+          }
+          // Turn off splash after batch so next frame doesn't re-apply
+          simMat.uniforms.splashStrength.value = 0;
+        }
 
         // Pass 2 — displacement map → 2D canvas → SVG feImage
         if (frameCount % dispFreq === 0) {
@@ -288,6 +432,8 @@ export const WaterOverlay = forwardRef<WaterOverlayHandle, WaterOverlayProps>(
         overlayMat.uniforms.tSim.value = rtA.texture;
         overlayMat.uniforms.lightDir.value.set(...cur.lightDir);
         overlayMat.uniforms.lightColor.value.set(...cur.lightColor);
+        overlayMat.uniforms.tintColor.value.set(...cur.waterColor);
+        overlayMat.uniforms.tintOpacity.value       = cur.tintOpacity;
         overlayMat.uniforms.specularIntensity.value = cur.specularIntensity;
         overlayMat.uniforms.glowIntensity.value     = cur.glowIntensity;
         overlayMat.uniforms.depthScale.value        = cur.depthScale;
