@@ -1,60 +1,121 @@
 import { useRef, useState } from 'react';
-import { WaterOverlay, Float } from '../components/WaterOverlay';
+import { WaterOverlay, WaterItem, Float } from '../components/WaterOverlay';
 import type { WaterOverlayHandle, WaterLightPreset } from '../components/WaterOverlay';
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
+// ─── Tokens ───────────────────────────────────────────────────────────────────
 
-const navy    = '#050e1f';
-const textHi  = 'rgba(190,225,255,0.92)';
-const textMid = 'rgba(140,190,240,0.60)';
-const textLo  = 'rgba(100,150,210,0.35)';
-const accent  = 'rgba(80,200,200,0.85)';
-const font    = 'Segoe UI, system-ui, sans-serif';
+const navy   = '#030c1a';
+const textHi = 'rgba(190,225,255,0.93)';
+const textMid= 'rgba(130,185,240,0.65)';
+const textLo = 'rgba(90,140,210,0.38)';
+const accent = 'rgba(70,210,200,0.90)';
+const mono   = 'Consolas, monospace';
+const sans   = 'Segoe UI, system-ui, sans-serif';
 
-// ─── Preset badge ─────────────────────────────────────────────────────────────
+// ─── Presets ──────────────────────────────────────────────────────────────────
 
 const PRESETS: WaterLightPreset[] = ['dawn', 'noon', 'neon', 'fluorescent'];
-
-const PRESET_COLORS: Record<WaterLightPreset, string> = {
-  dawn:        'rgba(255,160,60,0.85)',
-  noon:        'rgba(120,200,255,0.85)',
-  neon:        'rgba(0,255,200,0.85)',
-  fluorescent: 'rgba(160,210,240,0.85)',
+const PRESET_COLOR: Record<WaterLightPreset, string> = {
+  dawn:        'rgba(255,155,60,0.90)',
+  noon:        'rgba(110,200,255,0.90)',
+  neon:        'rgba(0,255,195,0.90)',
+  fluorescent: 'rgba(155,210,245,0.90)',
   custom:      accent,
 };
 
-// ─── Metric cards (submerged) ─────────────────────────────────────────────────
+// ─── Depth columns ────────────────────────────────────────────────────────────
 
-const METRICS = [
-  { value: '512²', unit: 'grid',    label: 'Wave simulation' },
-  { value: '1.49', unit: 'km/s',    label: 'Sound in water'  },
-  { value: '98.4', unit: '%/frame', label: 'Damping factor'  },
-  { value: '128²', unit: 'disp',    label: 'Normal map res'  },
-];
+const COLUMNS = [
+  {
+    depth: 0,
+    label: 'Superficie',
+    depthLabel: 'depth = 0',
+    color: 'rgba(0,80,160,0.78)',
+    border: 'rgba(60,160,255,0.35)',
+    items: ['Plena luz', 'Sin oscurecimiento', 'Caústicas visibles'],
+  },
+  {
+    depth: 0.45,
+    label: 'Media Agua',
+    depthLabel: 'depth = 0.45',
+    color: 'rgba(0,30,75,0.82)',
+    border: 'rgba(40,100,200,0.28)',
+    items: ['Luz atenuada', 'Tinte azul sutil', 'Ondas presentes'],
+  },
+  {
+    depth: 0.85,
+    label: 'Fondo',
+    depthLabel: 'depth = 0.85',
+    color: 'rgba(0,10,30,0.88)',
+    border: 'rgba(20,60,150,0.22)',
+    items: ['Casi sin luz', 'Tinte profundo', 'Presión extrema'],
+  },
+] as const;
 
-function MetricCard({ value, unit, label }: (typeof METRICS)[0]) {
+// ─── Card ─────────────────────────────────────────────────────────────────────
+
+function DepthCard({
+  depth, label, depthLabel, color, border, items,
+}: (typeof COLUMNS)[number]) {
   return (
-    <div style={{
-      background: 'rgba(0,40,90,0.55)',
-      border: '1px solid rgba(80,160,255,0.20)',
-      borderRadius: 12,
-      padding: '1.1rem 1.3rem',
-      display: 'flex', flexDirection: 'column', gap: '0.4rem',
-      minWidth: 140, flex: '1 1 140px',
-      backdropFilter: 'blur(6px)',
-      WebkitBackdropFilter: 'blur(6px)',
-    }}>
-      <div style={{ fontFamily: font, fontSize: '1.5rem', fontWeight: 300,
-        color: textHi, letterSpacing: '0.02em', lineHeight: 1 }}>
-        {value}
-        <span style={{ fontSize: '0.65rem', color: accent, marginLeft: 4,
-          letterSpacing: '0.1em', textTransform: 'uppercase' }}>{unit}</span>
+    <WaterItem depth={depth} style={{ flex: '1 1 220px', maxWidth: 300 }}>
+      <div style={{
+        background: color,
+        border: `1px solid ${border}`,
+        borderRadius: 14,
+        padding: '1.5rem 1.4rem',
+        display: 'flex', flexDirection: 'column', gap: '0.9rem',
+        height: '100%', boxSizing: 'border-box',
+        position: 'relative', overflow: 'hidden',
+      }}>
+        {/* Depth badge */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <span style={{ fontFamily: sans, fontSize: '0.60rem', letterSpacing: '0.16em',
+            textTransform: 'uppercase', color: accent, opacity: 0.9 }}>
+            {label}
+          </span>
+          <code style={{ fontFamily: mono, fontSize: '0.58rem', color: textMid,
+            background: 'rgba(0,0,0,0.3)', padding: '2px 7px', borderRadius: 20 }}>
+            {depthLabel}
+          </code>
+        </div>
+
+        {/* Depth meter */}
+        <div style={{
+          width: '100%', height: 3, background: 'rgba(255,255,255,0.07)',
+          borderRadius: 2, overflow: 'hidden',
+        }}>
+          <div style={{
+            width: `${depth * 100}%`, height: '100%',
+            background: `rgba(70,210,200,${0.3 + depth * 0.6})`,
+            transition: 'width 0.4s',
+          }} />
+        </div>
+
+        {/* Items */}
+        <ul style={{ margin: 0, padding: 0, listStyle: 'none',
+          display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+          {items.map(it => (
+            <li key={it} style={{ fontFamily: sans, fontSize: '0.73rem',
+              color: textMid, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ width: 4, height: 4, borderRadius: '50%',
+                background: accent, opacity: 0.6, flexShrink: 0 }} />
+              {it}
+            </li>
+          ))}
+        </ul>
+
+        {/* Depth number (big) */}
+        <div style={{ marginTop: 'auto', fontFamily: mono,
+          fontSize: '2.2rem', fontWeight: 700, letterSpacing: '-0.02em',
+          color: `rgba(190,225,255,${0.12 + (1 - depth) * 0.25})`,
+          textAlign: 'right', lineHeight: 1, userSelect: 'none' }}>
+          {depth.toFixed(2)}
+        </div>
       </div>
-      <div style={{ fontFamily: font, fontSize: '0.68rem', color: textMid,
-        letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-        {label}
-      </div>
-    </div>
+    </WaterItem>
   );
 }
 
@@ -62,170 +123,149 @@ function MetricCard({ value, unit, label }: (typeof METRICS)[0]) {
 
 export default function DemoV6Page() {
   const overlayRef = useRef<WaterOverlayHandle>(null);
-  const [preset, setPreset]     = useState<WaterLightPreset>('noon');
-  const [level, setLevel]       = useState(50); // 0=top, 100=bottom (CSS %)
-
-  // ── Submerged content (children — inside displacement filter) ─────────────
-  const underwaterContent = (
-    <div style={{
-      position: 'absolute', inset: 0,
-      background: `linear-gradient(175deg, ${navy} 0%, #020810 100%)`,
-      display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      gap: '2rem',
-      padding: '2rem 2.5rem',
-      boxSizing: 'border-box',
-    }}>
-      {/* Fine grid — makes displacement extremely visible */}
-      <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
-        backgroundImage: `
-          linear-gradient(rgba(100,160,255,0.05) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(100,160,255,0.05) 1px, transparent 1px)
-        `,
-        backgroundSize: '32px 32px',
-      }} />
-
-      {/* Metric card row */}
-      <div style={{
-        display: 'flex', flexWrap: 'wrap', gap: '0.85rem',
-        justifyContent: 'center', width: '100%', maxWidth: 700,
-        position: 'relative',
-      }}>
-        {METRICS.map(m => <MetricCard key={m.label} {...m} />)}
-      </div>
-
-      {/* Label bar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '0.75rem',
-        position: 'relative',
-      }}>
-        <div style={{
-          width: 6, height: 6, borderRadius: '50%',
-          background: accent, boxShadow: `0 0 8px ${accent}`,
-        }} />
-        <p style={{
-          fontFamily: font, fontSize: '0.62rem', letterSpacing: '0.14em',
-          textTransform: 'uppercase', color: textLo, margin: 0,
-        }}>
-          underwater · feDisplacementMap · WebGL wave sim
-        </p>
-      </div>
-
-      {/* Bottom-right hint */}
-      <div style={{
-        position: 'absolute', bottom: '1.2rem', right: '2rem',
-        fontFamily: font, fontSize: '0.58rem', letterSpacing: '0.1em',
-        color: textLo, userSelect: 'none',
-      }}>
-        click · drag · touch
-      </div>
-    </div>
-  );
+  const [depthScale, setDepthScale] = useState(0.70);
+  const [preset, setPreset]         = useState<WaterLightPreset>('noon');
 
   return (
     <WaterOverlay
       ref={overlayRef}
-      level={`${level}%`}
+      level={depthScale}
       mode="interactive"
       light={{ preset }}
-      material={{ opacity: 0.10, distortionScale: 1, surfaceBand: 0.018, edgeHighlight: 0.4 }}
+      material={{ distortionScale: 1 }}
       interaction={{ ripples: true, rippleStrength: 0.9, rippleRadius: 0.028 }}
       performance={{ quality: 'high' }}
-      debug={false}
     >
-      {underwaterContent}
-
-      {/* Float — surface content escapes the filter */}
-      <Float behavior="fixed">
+      {/* ── Fondo subacuático ── */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: `linear-gradient(180deg, #071428 0%, ${navy} 100%)`,
+      }}>
+        {/* Grid fino para hacer visible el desplazamiento */}
         <div style={{
-          position: 'absolute', inset: 0,
-          pointerEvents: 'none',
-        }}>
-          {/* ── Header ── */}
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          backgroundImage: `
+            linear-gradient(rgba(100,165,255,0.055) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(100,165,255,0.055) 1px, transparent 1px)
+          `,
+          backgroundSize: '36px 36px',
+        }} />
+      </div>
+
+      {/* ── Columnas a distinta profundidad Z ── */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '7rem 2.5rem 5rem',
+        boxSizing: 'border-box',
+        gap: '1.1rem',
+        flexWrap: 'wrap',
+      }}>
+        {COLUMNS.map(col => (
+          <DepthCard key={col.depthLabel} {...col} />
+        ))}
+      </div>
+
+      {/* ── Etiqueta inferior ── */}
+      <div style={{
+        position: 'absolute', bottom: '1.4rem', left: '50%',
+        transform: 'translateX(-50%)',
+        display: 'flex', alignItems: 'center', gap: '0.7rem',
+        pointerEvents: 'none',
+      }}>
+        <div style={{ width: 5, height: 5, borderRadius: '50%',
+          background: accent, boxShadow: `0 0 8px ${accent}` }} />
+        <p style={{ fontFamily: sans, fontSize: '0.60rem', letterSpacing: '0.14em',
+          textTransform: 'uppercase', color: textLo, margin: 0 }}>
+          eje Z · feDisplacementMap · WebGL 512² sim
+        </p>
+      </div>
+
+      {/* ── Hint arrastre ── */}
+      <div style={{
+        position: 'absolute', bottom: '1.4rem', right: '2rem',
+        fontFamily: sans, fontSize: '0.58rem', letterSpacing: '0.1em',
+        color: textLo, userSelect: 'none',
+      }}>
+        click · drag · touch
+      </div>
+
+      {/* ── Float: UI chrome sobre el agua (sin distorsión, sin oscurecer) ── */}
+      <Float>
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+
+          {/* Header */}
           <div style={{
-            position: 'absolute',
-            top: '2.2rem', left: '2.5rem', right: '2.5rem',
+            position: 'absolute', top: '2rem', left: '2.5rem',
           }}>
-            <p style={{
-              fontFamily: font, fontSize: '0.60rem', letterSpacing: '0.18em',
-              textTransform: 'uppercase', color: textLo, margin: '0 0 0.5rem',
-            }}>
+            <p style={{ fontFamily: sans, fontSize: '0.58rem', letterSpacing: '0.18em',
+              textTransform: 'uppercase', color: textLo, margin: '0 0 0.45rem' }}>
               ripple / v6
             </p>
             <h1 style={{
-              fontFamily: font, fontSize: 'clamp(1.6rem, 3.8vw, 2.8rem)',
+              fontFamily: sans, fontSize: 'clamp(1.5rem,3.5vw,2.6rem)',
               fontWeight: 200, letterSpacing: '0.06em', color: textHi,
-              margin: '0 0 0.4rem',
-              textShadow: '0 0 60px rgba(60,180,255,0.30)',
+              margin: '0 0 0.35rem',
+              textShadow: '0 0 55px rgba(50,175,255,0.30)',
             }}>
               Water Overlay
             </h1>
-            <p style={{
-              fontFamily: font, fontSize: '0.80rem', color: textMid,
-              margin: 0, maxWidth: 400, lineHeight: 1.65,
-            }}>
-              HTML below the surface is distorted by a live wave simulation.
-              Click or drag to create ripples.
+            <p style={{ fontFamily: sans, fontSize: '0.78rem', color: textMid,
+              margin: 0, maxWidth: 360, lineHeight: 1.65 }}>
+              Profundidad en eje Z — cada elemento tiene su propio{' '}
+              <code style={{ fontFamily: mono, color: accent, fontSize: '0.73rem' }}>depth</code>.
+              Más oscuro = más al fondo.
             </p>
           </div>
 
-          {/* ── Controls (pointer-events auto) ── */}
+          {/* Controls */}
           <div style={{
-            position: 'absolute',
-            top: '2.2rem', right: '2.5rem',
-            display: 'flex', flexDirection: 'column', gap: '1.2rem',
+            position: 'absolute', top: '2rem', right: '2.5rem',
+            display: 'flex', flexDirection: 'column', gap: '1.1rem',
             alignItems: 'flex-end',
             pointerEvents: 'auto',
           }}>
-            {/* Water level */}
-            <label style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
-              gap: '0.35rem',
-            }}>
-              <span style={{ fontFamily: font, fontSize: '0.58rem', letterSpacing: '0.14em',
+            {/* Depth scale */}
+            <label style={{ display: 'flex', flexDirection: 'column',
+              alignItems: 'flex-end', gap: '0.30rem' }}>
+              <span style={{ fontFamily: sans, fontSize: '0.56rem', letterSpacing: '0.14em',
                 textTransform: 'uppercase', color: textLo }}>
-                water level
+                depth scale
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                 <input
-                  type="range" min={0} max={100} value={level}
-                  onChange={e => setLevel(Number(e.target.value))}
-                  style={{ width: 130, accentColor: accent, cursor: 'pointer' }}
+                  type="range" min={0} max={1} step={0.01}
+                  value={depthScale}
+                  onChange={e => setDepthScale(parseFloat(e.target.value))}
+                  style={{ width: 120, accentColor: accent, cursor: 'pointer' }}
                 />
-                <input
-                  type="number" min={0} max={100} value={level}
-                  onChange={e => setLevel(Math.max(0, Math.min(100, Number(e.target.value))))}
-                  style={{
-                    width: 50, background: 'rgba(0,20,50,0.7)',
-                    border: '1px solid rgba(80,160,255,0.25)',
-                    borderRadius: 6, padding: '3px 6px',
-                    fontFamily: 'monospace', fontSize: '0.75rem',
-                    color: textHi, textAlign: 'center',
-                  }}
-                />
+                <code style={{ fontFamily: mono, fontSize: '0.72rem', color: textHi,
+                  minWidth: 36, textAlign: 'right' }}>
+                  {depthScale.toFixed(2)}
+                </code>
               </div>
             </label>
 
-            {/* Light preset switcher */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.35rem' }}>
-              <span style={{ fontFamily: font, fontSize: '0.58rem', letterSpacing: '0.14em',
+            {/* Preset switcher */}
+            <div style={{ display: 'flex', flexDirection: 'column',
+              alignItems: 'flex-end', gap: '0.30rem' }}>
+              <span style={{ fontFamily: sans, fontSize: '0.56rem', letterSpacing: '0.14em',
                 textTransform: 'uppercase', color: textLo }}>
-                light preset
+                light
               </span>
-              <div style={{ display: 'flex', gap: '0.45rem' }}>
+              <div style={{ display: 'flex', gap: '0.4rem' }}>
                 {PRESETS.map(p => (
                   <button
                     key={p}
                     onClick={() => setPreset(p)}
                     style={{
-                      fontFamily: font, fontSize: '0.60rem', letterSpacing: '0.1em',
+                      fontFamily: sans, fontSize: '0.58rem', letterSpacing: '0.08em',
                       textTransform: 'uppercase',
-                      background: preset === p ? PRESET_COLORS[p] : 'rgba(0,20,50,0.55)',
+                      background: preset === p ? PRESET_COLOR[p] : 'rgba(0,15,40,0.60)',
                       color: preset === p ? navy : textMid,
-                      border: `1px solid ${preset === p ? PRESET_COLORS[p] : 'rgba(80,160,255,0.20)'}`,
-                      borderRadius: 20, padding: '4px 12px',
-                      cursor: 'pointer', transition: 'all 0.2s',
+                      border: `1px solid ${preset === p ? PRESET_COLOR[p] : 'rgba(60,130,220,0.22)'}`,
+                      borderRadius: 20, padding: '4px 11px',
+                      cursor: 'pointer', transition: 'all 0.18s',
                     }}
                   >
                     {p}
@@ -234,23 +274,45 @@ export default function DemoV6Page() {
               </div>
             </div>
 
-            {/* Splash button */}
+            {/* Splash */}
             <button
               onClick={() => overlayRef.current?.splash()}
               style={{
-                fontFamily: font, fontSize: '0.62rem', letterSpacing: '0.12em',
+                fontFamily: sans, fontSize: '0.60rem', letterSpacing: '0.12em',
                 textTransform: 'uppercase',
-                background: 'rgba(80,200,200,0.15)',
+                background: 'rgba(70,210,200,0.12)',
                 color: accent,
                 border: `1px solid ${accent}`,
                 borderRadius: 20, padding: '5px 16px',
-                cursor: 'pointer', transition: 'background 0.2s',
+                cursor: 'pointer', transition: 'background 0.18s',
               }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(80,200,200,0.28)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(80,200,200,0.15)')}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(70,210,200,0.26)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(70,210,200,0.12)')}
             >
               splash ⌁
             </button>
+          </div>
+
+          {/* Leyenda de profundidades */}
+          <div style={{
+            position: 'absolute', bottom: '3.2rem', left: '2.5rem',
+            display: 'flex', flexDirection: 'column', gap: '0.45rem',
+          }}>
+            <span style={{ fontFamily: sans, fontSize: '0.55rem', letterSpacing: '0.14em',
+              textTransform: 'uppercase', color: textLo }}>
+              profundidad
+            </span>
+            {[0, 0.25, 0.5, 0.75, 1].map(d => (
+              <div key={d} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{
+                  width: 28, height: 4, borderRadius: 2,
+                  background: `rgba(${Math.round(d * 190)}, ${Math.round(d * 190)}, ${Math.round(d * 190)}, ${1 - d * 0.85})`,
+                  border: '1px solid rgba(70,130,220,0.25)',
+                }} />
+                <code style={{ fontFamily: mono, fontSize: '0.60rem',
+                  color: textLo }}>{d.toFixed(2)}</code>
+              </div>
+            ))}
           </div>
         </div>
       </Float>

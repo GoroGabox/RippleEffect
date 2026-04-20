@@ -40,26 +40,18 @@ void main() {
 }`;
 
 // ─── Displacement map ─────────────────────────────────────────────────────────
-// Encodes surface normals as RG channels for SVG feDisplacementMap.
-// Above waterLevelUV (CSS space): neutral 0.5,0.5 → zero offset.
-// Below: actual normal gradient.
+// Pantalla completa — sin división de eje Y.
+// Encodes surface normals como RG para SVG feDisplacementMap.
 
 export const DISP_FRAG = /* glsl */`
 uniform sampler2D tSim;
 uniform vec2  texelSize;
-uniform float waterLevelUV;   // 0=top, 1=bottom (CSS space)
-uniform float distortionMult; // 1.0 = normal, 0 = off
+uniform float distortionMult;
 varying vec2 vUv;
 
 void main() {
   // Flip Y: OpenGL UV (0=bottom) → CSS space (0=top)
   vec2 uv = vec2(vUv.x, 1.0 - vUv.y);
-
-  if (uv.y < waterLevelUV) {
-    // Above water — neutral displacement
-    gl_FragColor = vec4(0.5, 0.5, 0.5, 1.0);
-    return;
-  }
 
   float hL = texture2D(tSim, uv - vec2(texelSize.x, 0.0)).r;
   float hR = texture2D(tSim, uv + vec2(texelSize.x, 0.0)).r;
@@ -68,71 +60,71 @@ void main() {
 
   vec3 normal = normalize(vec3((hL - hR) * 6.0 * distortionMult,
                                (hD - hU) * 6.0 * distortionMult, 1.0));
+  // R = X offset, G = Y offset; 0.5 = sin desplazamiento
   gl_FragColor = vec4(normal.x * 0.5 + 0.5, normal.y * 0.5 + 0.5, 0.5, 1.0);
 }`;
 
-// ─── Overlay: specular highlights + caustics + surface shimmer ────────────────
-// Premultiplied alpha.  Above waterLineGL: fully transparent.
-// Surface band: exponential glow.
-// Below: depth tint + specular + caustics.
+// ─── Overlay: caústicas + especular + gradiente de luz vertical ───────────────
+//
+// Modelo Z-axis:
+//   vUv.y = 1 (arriba)  → cerca de la superficie → más luz, caústicas fuertes
+//   vUv.y = 0 (abajo)   → fondo / más profundo   → menos luz, caústicas tenues
+//
+// El canvas es transparente (premultiplied alpha) y se superpone sobre el
+// contenido HTML filtrado. El oscurecimiento per-elemento lo aplica WaterItem
+// en CSS (depth prop), no este shader.
 
 export const OVERLAY_FRAG = /* glsl */`
 uniform sampler2D tSim;
 uniform vec2  texelSize;
-uniform float waterLineGL;       // OpenGL UV of surface (= 1.0 - waterLevelUV)
-uniform float surfaceBandGL;     // width in UV of the shimmer band
-uniform vec3  lightDir;          // normalized light direction
-uniform vec3  lightColor;        // RGB
+uniform vec3  lightDir;
+uniform vec3  lightColor;
 uniform float specularIntensity;
 uniform float glowIntensity;
-uniform vec3  tintColor;         // water depth tint
-uniform float tintOpacity;       // base alpha for tint layer
-uniform float edgeHighlight;     // 0–1 rim-light strength
+uniform float depthScale;      // escala global de profundidad 0–1
 varying vec2 vUv;
 
 void main() {
-  // Above water — invisible
-  if (vUv.y > waterLineGL) {
-    gl_FragColor = vec4(0.0);
-    return;
-  }
-
   float hL = texture2D(tSim, vUv - vec2(texelSize.x, 0.0)).r;
   float hR = texture2D(tSim, vUv + vec2(texelSize.x, 0.0)).r;
   float hU = texture2D(tSim, vUv + vec2(0.0, texelSize.y)).r;
   float hD = texture2D(tSim, vUv - vec2(0.0, texelSize.y)).r;
 
-  vec3  normal  = normalize(vec3((hL - hR) * 7.0, (hD - hU) * 7.0, 1.0));
-  vec3  V       = vec3(0.0, 0.0, 1.0);
-  vec3  L       = lightDir;
-  vec3  H       = normalize(L + V);
-  float ndotH   = max(dot(normal, H), 0.0);
-  float spec    = pow(ndotH, 140.0) * specularIntensity;
-  float fresnel = pow(1.0 - max(dot(normal, V), 0.0), 4.0);
-  float h       = texture2D(tSim, vUv).r;
+  vec3  normal   = normalize(vec3((hL - hR) * 7.0, (hD - hU) * 7.0, 1.0));
+  vec3  V        = vec3(0.0, 0.0, 1.0);
+  vec3  H        = normalize(lightDir + V);
+  float spec     = pow(max(dot(normal, H), 0.0), 140.0) * specularIntensity;
+  float fresnel  = pow(1.0 - max(dot(normal, V), 0.0), 4.0);
+  float h        = texture2D(tSim, vUv).r;
   float activity = abs(h);
 
-  // Surface band glow
-  float surfDist = waterLineGL - vUv.y;
-  float surfGlow = (surfaceBandGL > 0.0)
-    ? exp(-surfDist / max(surfaceBandGL, 0.0001)) * glowIntensity
-    : 0.0;
+  // Atenuación vertical: la luz viene de arriba (vUv.y=1=superficie).
+  // Con depthScale=0 no hay atenuación; depthScale=1 atenúa 80% en el fondo.
+  float vertAtten = 1.0 - (1.0 - vUv.y) * depthScale * 0.80;
+  vertAtten = clamp(vertAtten, 0.0, 1.0);
 
-  // Depth gradient (stronger towards bottom)
-  float depth = 1.0 - vUv.y / max(waterLineGL, 0.001);
-  float depthAlpha = tintOpacity * (0.6 + 0.4 * depth);
+  // Shimmer / glow de superficie: más intenso en la parte superior
+  float surfGlow = glowIntensity * vUv.y * max(0.0, h * 4.0 + activity * 2.0);
 
-  vec3  color = tintColor * depthAlpha;
-  float alpha = depthAlpha;
+  vec3  color = vec3(0.0);
+  float alpha = 0.0;
 
-  color += lightColor * spec;
-  color += lightColor * max(0.0, h * 7.0) * 0.18; // caustics
-  color += lightColor * fresnel * activity * (0.3 + edgeHighlight * 0.7);
-  alpha  = clamp(alpha + spec * 2.2 + max(0.0, h * 7.0) * 0.4 + fresnel * activity * 0.35, 0.0, 0.92);
+  // Especular
+  color += lightColor * spec * vertAtten;
+  // Caústicas (ondas positivas dispersan luz)
+  color += lightColor * max(0.0, h * 6.0) * 0.20 * vertAtten;
+  // Fresnel / rim
+  color += lightColor * fresnel * activity * 0.30 * vertAtten;
+  // Shimmer de superficie
+  color += vec3(0.55, 0.85, 1.0) * surfGlow;
 
-  // Surface shimmer on top
-  color += vec3(0.5, 0.82, 1.0) * surfGlow;
-  alpha  = max(alpha, surfGlow * 0.75);
+  alpha = clamp(
+    spec * 2.5 * vertAtten
+    + max(0.0, h * 6.0) * 0.40 * vertAtten
+    + fresnel * activity * 0.30 * vertAtten
+    + surfGlow * 0.70,
+    0.0, 0.92
+  );
 
   gl_FragColor = vec4(color * alpha, alpha); // premultiplied
 }`;

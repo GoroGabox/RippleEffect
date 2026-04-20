@@ -1,20 +1,18 @@
 import { createContext, useContext } from 'react';
-import type { WaterMode, WaterLightPreset, WaterZone } from './types';
+import type { WaterMode, WaterLightPreset } from './types';
 
 // ─── Internal context shape ────────────────────────────────────────────────────
 
 export interface WaterContextValue {
-  /** Normalized water level: 0 = bottom, 1 = top. */
-  level:         number;
+  /** Escala global de profundidad (0=cristalino, 1=muy profundo). */
+  depthScale:    number;
   mode:          WaterMode;
   lightPreset:   WaterLightPreset;
   isInteractive: boolean;
-  /** Returns the zone for a given normalized Y position (0 = bottom, 1 = top). */
-  zoneAt: (normalizedY: number) => WaterZone;
-  /** DOM element used as portal target for above-water (float/fixed) content. */
-  surfaceSlot: HTMLDivElement | null;
-  /** DOM element used as portal target for below-water (submerge) content when explicit. */
-  submergedSlot: HTMLDivElement | null;
+  /** Computa oscurecimiento final para un item con depth dado. */
+  darknessFor:   (depth: number) => number;
+  /** Portal target para contenido que flota sobre el agua (float/fixed). */
+  surfaceSlot:   HTMLDivElement | null;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -28,8 +26,8 @@ export function useWaterContext(): WaterContextValue {
   const ctx = useContext(WaterContext);
   if (!ctx) {
     throw new Error(
-      '<WaterItem>, <Float>, <Submerged>, useWaterOverlay, and useWaterItem ' +
-      'must be used inside <WaterOverlay>.',
+      '<WaterItem>, <Float>, <Submerged>, useWaterOverlay y useWaterItem ' +
+      'deben usarse dentro de <WaterOverlay>.',
     );
   }
   return ctx;

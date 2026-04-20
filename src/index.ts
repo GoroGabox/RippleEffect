@@ -17,8 +17,8 @@ export { WaterOverlay, WaterItem, Float, Submerged, useWaterOverlay, useWaterIte
 export type {
   WaterOverlayProps, WaterOverlayHandle,
   WaterItemProps, FloatProps, SubmergedProps,
-  WaterLevel, WaterMode, WaterLightPreset, WaterLightDirection,
-  WaterItemBehavior, WaterBuoyancy, WaterDistortionLevel, WaterOcclusionMode, WaterZone,
+  WaterDepthScale, WaterMode, WaterLightPreset, WaterLightDirection,
+  WaterItemBehavior, WaterBuoyancy, WaterDistortionLevel, WaterOcclusionMode,
   WaterLightConfig, WaterMaterialConfig, WaterInteractionConfig,
   WaterPerformanceConfig, WaterLayoutConfig,
   UseWaterOverlayReturn, UseWaterItemReturn,

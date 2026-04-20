@@ -1,5 +1,5 @@
 // ─── Components ───────────────────────────────────────────────────────────────
-export { WaterOverlay }              from './WaterOverlay';
+export { WaterOverlay }                from './WaterOverlay';
 export { WaterItem, Float, Submerged } from './WaterItem';
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
@@ -12,7 +12,7 @@ export type {
   WaterItemProps,
   FloatProps,
   SubmergedProps,
-  WaterLevel,
+  WaterDepthScale,
   WaterMode,
   WaterLightPreset,
   WaterLightDirection,
@@ -20,7 +20,6 @@ export type {
   WaterBuoyancy,
   WaterDistortionLevel,
   WaterOcclusionMode,
-  WaterZone,
   WaterLightConfig,
   WaterMaterialConfig,
   WaterInteractionConfig,

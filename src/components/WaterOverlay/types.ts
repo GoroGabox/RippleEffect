@@ -2,7 +2,13 @@ import type { ReactNode, CSSProperties } from 'react';
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 
-export type WaterLevel = number | `${number}%`;
+/**
+ * Global water depth scale.
+ * 0 = agua cristalina (elementos igualmente iluminados sin importar profundidad)
+ * 1 = muy profundo (elementos en depth=1 casi negros)
+ * Default: 0.7
+ */
+export type WaterDepthScale = number;
 
 export type WaterMode = 'static' | 'interactive' | 'scroll-linked';
 
@@ -20,8 +26,6 @@ export type WaterBuoyancy = 'none' | 'low' | 'medium' | 'high' | number;
 export type WaterDistortionLevel = 'none' | 'low' | 'medium' | 'high';
 
 export type WaterOcclusionMode = 'auto' | 'clip' | 'mask' | 'none';
-
-export type WaterZone = 'above' | 'surface' | 'below';
 
 // ─── Config objects ───────────────────────────────────────────────────────────
 
@@ -46,7 +50,7 @@ export interface WaterMaterialConfig {
 }
 
 export interface WaterInteractionConfig {
-  ripples?:       boolean;
+  ripples?:        boolean;
   rippleStrength?: number;
   rippleRadius?:   number;
   followPointer?:  boolean;
@@ -61,9 +65,9 @@ export interface WaterPerformanceConfig {
 }
 
 export interface WaterLayoutConfig {
-  strategy?:    'contained' | 'viewport';
-  numberUnit?:  'normalized' | 'pixels';
-  resize?:      'observer' | 'window';
+  strategy?:     'contained' | 'viewport';
+  numberUnit?:   'normalized' | 'pixels';
+  resize?:       'observer' | 'window';
   overflowClip?: boolean;
 }
 
@@ -71,7 +75,13 @@ export interface WaterLayoutConfig {
 
 export interface WaterOverlayProps {
   children?:    ReactNode;
-  level?:       WaterLevel;
+  /**
+   * Escala global de profundidad del agua (eje Z).
+   * 0 = cristalino / sin oscurecimiento
+   * 1 = muy profundo / elementos oscuros
+   * Default: 0.7
+   */
+  level?:       WaterDepthScale;
   mode?:        WaterMode;
   light?:       WaterLightConfig;
   material?:    WaterMaterialConfig;
@@ -84,15 +94,22 @@ export interface WaterOverlayProps {
 }
 
 export interface WaterItemProps {
-  children?:  ReactNode;
-  behavior?:  WaterItemBehavior;
-  buoyancy?:  WaterBuoyancy;
+  children?:   ReactNode;
+  behavior?:   WaterItemBehavior;
+  /**
+   * Profundidad en el eje Z (0–1).
+   * 0 = superficie (plena iluminación, sin oscurecer)
+   * 1 = fondo (máximo oscurecimiento según la escala global)
+   * Default: 0
+   */
+  depth?:      number;
+  buoyancy?:   WaterBuoyancy;
   distortion?: WaterDistortionLevel;
-  occlusion?: WaterOcclusionMode;
-  priority?:  number;
-  id?:        string;
-  className?: string;
-  style?:     CSSProperties;
+  occlusion?:  WaterOcclusionMode;
+  priority?:   number;
+  id?:         string;
+  className?:  string;
+  style?:      CSSProperties;
 }
 
 export type FloatProps    = Omit<WaterItemProps, 'behavior'>;
@@ -101,18 +118,18 @@ export type SubmergedProps = Omit<WaterItemProps, 'behavior'>;
 // ─── Hook return types ────────────────────────────────────────────────────────
 
 export interface UseWaterOverlayReturn {
-  level:         number;           // normalized 0–1 (0 = bottom, 1 = top)
-  zoneAt:        (y: number) => WaterZone;
+  /** Escala global de profundidad (0–1). */
+  depthScale:    number;
   mode:          WaterMode;
   lightPreset:   WaterLightPreset;
   isInteractive: boolean;
 }
 
 export interface UseWaterItemReturn {
-  zone:           WaterZone;
-  immersion:      number;           // 0 = fully above, 1 = fully below
-  isSubmerged:    boolean;
-  isIntersecting: boolean;
+  /** Oscurecimiento real aplicado (0=ninguno, 1=máximo). */
+  darkness:    number;
+  /** Brillo resultante (1 - darkness). */
+  brightness:  number;
 }
 
 // ─── Imperative handle ────────────────────────────────────────────────────────
