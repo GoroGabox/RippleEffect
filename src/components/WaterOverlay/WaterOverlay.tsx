@@ -38,6 +38,7 @@ interface SplashCmd {
 
 interface ActiveEffects {
   rain:      { active: boolean; intensity: number };
+  sea:       { active: boolean; intensity: number };
   vibration: { active: boolean; strength: number; endTime: number };
   wave:      { active: boolean; dir: 'left'|'right'|'top'|'bottom'; strength: number; phase: number; total: number };
 }
@@ -112,8 +113,9 @@ export const WaterOverlay = forwardRef<WaterOverlayHandle, WaterOverlayProps>(
     // ── Active looping effects — read each RAF frame ──────────────────────────
     const effectsRef = useRef<ActiveEffects>({
       rain:      { active: false, intensity: 0.5 },
+      sea:       { active: false, intensity: 0.5 },
       vibration: { active: false, strength: 1, endTime: 0 },
-      wave:      { active: false, dir: 'right', strength: 1, phase: 0, total: 120 },
+      wave:      { active: false, dir: 'right', strength: 1, phase: 0, total: 240 },
     });
 
     const rawId    = useId();
@@ -137,6 +139,13 @@ export const WaterOverlay = forwardRef<WaterOverlayHandle, WaterOverlayProps>(
         return () => { effectsRef.current.rain.active = false; };
       },
 
+      sea(intensity = 0.5) {
+        const eff = effectsRef.current.sea;
+        eff.active    = true;
+        eff.intensity = Math.max(0, Math.min(1, intensity));
+        return () => { effectsRef.current.sea.active = false; };
+      },
+
       trail(x: number, y: number, strength = 0.4) {
         splashQueue.current.push({
           x: x / window.innerWidth,
@@ -155,15 +164,16 @@ export const WaterOverlay = forwardRef<WaterOverlayHandle, WaterOverlayProps>(
 
       wave(direction = 'right', strength = 1) {
         const eff = effectsRef.current.wave;
-        eff.active  = true;
-        eff.dir     = direction;
+        eff.active   = true;
+        eff.dir      = direction;
         eff.strength = Math.max(0, strength);
-        eff.phase   = 0;
-        eff.total   = 150; // ~2.5 s at 60 fps
+        eff.phase    = 0;
+        eff.total    = 240; // ~4 s at 60 fps — full edge-to-edge travel
       },
 
       stopEffects() {
         effectsRef.current.rain.active      = false;
+        effectsRef.current.sea.active       = false;
         effectsRef.current.vibration.active = false;
         effectsRef.current.wave.active      = false;
         splashQueue.current.length          = 0;
@@ -328,7 +338,7 @@ export const WaterOverlay = forwardRef<WaterOverlayHandle, WaterOverlayProps>(
 
         // ── Active effects → push SplashCmds into queue ───────────────────────
 
-        // Rain — one drop per N frames
+        // Rain — tight drops, small radius
         if (eff.rain.active) {
           const dropsPerSec = Math.max(0.5, eff.rain.intensity * 25);
           const period = Math.round(60 / dropsPerSec);
@@ -342,7 +352,29 @@ export const WaterOverlay = forwardRef<WaterOverlayHandle, WaterOverlayProps>(
           }
         }
 
-        // Vibration — micro-pulses for a duration
+        // Sea — ambient ocean chop: soft, large-radius, scattered
+        if (eff.sea.active) {
+          // Slower cadence than rain — 4–12 drops/sec; each is wider and softer
+          const dropsPerSec = 4 + eff.sea.intensity * 8;
+          const period = Math.max(2, Math.round(60 / dropsPerSec));
+          if (frameCount % period === 0) {
+            // Two concurrent drops at random positions for natural chop
+            queue.push({
+              x:        Math.random(),
+              y:        Math.random(),
+              strength: eff.sea.intensity * (0.022 + Math.random() * 0.040),
+              radius:   0.040 + Math.random() * 0.060,
+            });
+            queue.push({
+              x:        Math.random(),
+              y:        Math.random(),
+              strength: eff.sea.intensity * (0.015 + Math.random() * 0.030),
+              radius:   0.060 + Math.random() * 0.080,
+            });
+          }
+        }
+
+        // Vibration — rapid micro-pulses for a fixed duration
         if (eff.vibration.active) {
           if (now > eff.vibration.endTime) {
             eff.vibration.active = false;
@@ -356,33 +388,37 @@ export const WaterOverlay = forwardRef<WaterOverlayHandle, WaterOverlayProps>(
           }
         }
 
-        // Wave — sweeping edge scan
+        // Wave — coherent wavefront: line of 6 large-radius drops sweeping from off-screen
+        // Injects a line every 4 frames; 6 drops × radius=0.09 form an overlapping front
         if (eff.wave.active) {
+          eff.wave.phase++;
           if (eff.wave.phase >= eff.wave.total) {
             eff.wave.active = false;
-          } else {
-            const t = eff.wave.phase / eff.wave.total;
-            eff.wave.phase++;
-            // Drop every 2 frames so the wave is spaced out
-            if (eff.wave.phase % 2 === 0) {
-              const dir = eff.wave.dir;
-              const sx = dir === 'right' ? t
-                       : dir === 'left'  ? 1 - t
-                       : 0.15 + Math.random() * 0.70;
-              const sy = dir === 'top'    ? 1 - t
-                       : dir === 'bottom' ? t
-                       : 0.15 + Math.random() * 0.70;
+          } else if (eff.wave.phase % 4 === 0) {
+            const t   = eff.wave.phase / eff.wave.total; // 0→1
+            const dir = eff.wave.dir;
+            const isH = dir === 'left' || dir === 'right';
+            // Front travels from -0.15 (off-screen) to 1.15 (off-screen)
+            const front = dir === 'left' || dir === 'top'
+              ? 1.15 - t * 1.30   // right→left or bottom→top
+              : -0.15 + t * 1.30; // left→right or top→bottom
+
+            // 6 drops along the perpendicular axis, spacing=0.20, radius=0.09
+            for (let i = 0; i <= 5; i++) {
+              const perp = i / 5; // 0, 0.2, 0.4, 0.6, 0.8, 1.0
               queue.push({
-                x: sx, y: sy,
-                strength: eff.wave.strength * 0.40,
-                radius:   0.014,
+                x:        isH ? front : perp,
+                y:        isH ? perp  : front,
+                strength: eff.wave.strength * (0.50 + Math.random() * 0.12),
+                radius:   0.082 + Math.random() * 0.020,
               });
             }
           }
         }
 
-        // ── Process up to 3 splashes per frame (multi-pass sim) ──────────────
-        const batchSize = Math.min(queue.length, 3);
+        // ── Process up to 6 splashes per frame (multi-pass sim) ──────────────
+        // 6 covers a full wave-line (6 drops) in one frame tick
+        const batchSize = Math.min(queue.length, 6);
         if (batchSize === 0) {
           // No splash this frame — run sim once with zero strength to let waves decay
           simMat.uniforms.splashStrength.value = 0;

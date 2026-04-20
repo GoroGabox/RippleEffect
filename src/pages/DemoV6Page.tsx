@@ -511,6 +511,28 @@ export default function DemoV6Page() {
   const [rainIntensity, setRainIntensity] = useState(0.5);
   const rainCancelRef = useRef<(() => void) | null>(null);
 
+  const [seaActive, setSeaActive]       = useState(false);
+  const [seaIntensity, setSeaIntensity] = useState(0.5);
+  const seaCancelRef = useRef<(() => void) | null>(null);
+
+  const toggleSea = () => {
+    if (seaActive) {
+      seaCancelRef.current?.();
+      seaCancelRef.current = null;
+      setSeaActive(false);
+    } else {
+      seaCancelRef.current = overlayRef.current?.sea(seaIntensity) ?? null;
+      setSeaActive(true);
+    }
+  };
+  const onSeaIntensityChange = (v: number) => {
+    setSeaIntensity(v);
+    if (seaActive) {
+      seaCancelRef.current?.();
+      seaCancelRef.current = overlayRef.current?.sea(v) ?? null;
+    }
+  };
+
   const [vibStrength, setVibStrength]   = useState(1.0);
   const [vibDuration, setVibDuration]   = useState(1000);
 
@@ -775,6 +797,22 @@ export default function DemoV6Page() {
               </Row>
             </div>
 
+            {/* sea() */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <SliderRow label="sea intensity" prop="ref.sea(intensity)"
+                min={0.05} max={1} step={0.01} value={seaIntensity}
+                onChange={onSeaIntensityChange} />
+              <Row label="" prop="">
+                <EffectBtn
+                  active={seaActive}
+                  onClick={toggleSea}
+                  style={{ minWidth: 96 }}
+                >
+                  {seaActive ? '■ calm sea' : '≋ start sea'}
+                </EffectBtn>
+              </Row>
+            </div>
+
             {/* vibration() */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
               <SliderRow label="vib strength" prop="ref.vibration(strength)"
@@ -792,9 +830,9 @@ export default function DemoV6Page() {
 
             {/* wave() */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              <SliderRow label="wave strength" prop="ref.wave(dir, strength)"
+              <SliderRow label="wavefront" prop="ref.wave(dir, strength)"
                 min={0} max={2} value={waveStrength} onChange={setWaveStrength} />
-              <Row label="wave dir" prop="ref.wave(direction)">
+              <Row label="origin" prop="ref.wave(direction)">
                 <div style={{ display: 'flex', gap: 3 }}>
                   {(['left','right','top','bottom'] as const).map(d => {
                     const sym = d === 'left' ? '←' : d === 'right' ? '→' : d === 'top' ? '↑' : '↓';
@@ -843,10 +881,10 @@ export default function DemoV6Page() {
               <EffectBtn
                 onClick={() => {
                   overlayRef.current?.stopEffects();
-                  if (rainActive) {
-                    rainCancelRef.current = null;
-                    setRainActive(false);
-                  }
+                  rainCancelRef.current = null;
+                  seaCancelRef.current  = null;
+                  setRainActive(false);
+                  setSeaActive(false);
                 }}
                 danger
               >

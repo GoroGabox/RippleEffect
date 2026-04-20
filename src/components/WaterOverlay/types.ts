@@ -162,12 +162,21 @@ export interface WaterOverlayHandle {
   vibration(strength?: number, duration?: number): void;
 
   /**
-   * Sweeping wave from one edge across the whole surface.
+   * Ambient ocean / sea state — continuous gentle chop across the whole surface.
+   * intensity 0–1 (default 0.5). Returns a cancel function.
+   * Produces a softer, larger-radius pattern than rain.
+   */
+  sea(intensity?: number): () => void;
+
+  /**
+   * Single coherent wavefront originating from outside the viewport.
+   * The front sweeps from edge to edge with overlapping large-radius drops
+   * forming a continuous wall of water.
    * direction: 'left'|'right'|'top'|'bottom', default 'right'.
    * strength 0–2, default 1.
    */
   wave(direction?: 'left' | 'right' | 'top' | 'bottom', strength?: number): void;
 
-  /** Cancel all active programmatic effects (rain, vibration, wave). */
+  /** Cancel all active programmatic effects (rain, sea, vibration, wave). */
   stopEffects(): void;
 }
