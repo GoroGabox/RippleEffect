@@ -67,11 +67,17 @@ export function WaterItem({
   if (behavior === 'float' || behavior === 'fixed') {
     if (!surfaceSlot) return null;
     return createPortal(
+      // data-water-surface marca este nodo como "sobre el agua":
+      // el WaterOverlay usa closest('[data-water-surface]') para ignorar
+      // los eventos que vienen desde aquí y no generar ondas.
+      // pointer-events: none en el contenedor — los hijos interactivos
+      // (botones, inputs) siguen funcionando por su valor default del browser.
       <div
+        data-water-surface="true"
         className={className}
         style={{
           position: 'absolute', inset: 0,
-          pointerEvents: behavior === 'fixed' ? 'auto' : 'none',
+          pointerEvents: 'none',
           ...depthWrapperStyle(darkness),
           ...style,
         }}
