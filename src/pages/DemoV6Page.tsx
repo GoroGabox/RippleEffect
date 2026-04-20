@@ -23,6 +23,220 @@ const C = {
   PANEL_W:     400,
 } as const;
 
+// ─── Scenario system ──────────────────────────────────────────────────────────
+
+interface ScenarioConfig {
+  id:            string;
+  name:          string;
+  emoji:         string;
+  description:   string;
+  accentColor:   string;
+  highlightHex:  string;   // light.color
+  waterHex:      string;   // material.tint
+  direction:     WaterLightDirection;
+  specular:      number;
+  glow:          number;
+  level:         number;
+  distortionScale: number;
+  rippleStrength:  number;
+  rippleRadius:    number;
+  bgGradient:    string;
+  gridColor:     string;
+  autoEffect?:   (ref: WaterOverlayHandle) => void;
+}
+
+const SCENARIOS: ScenarioConfig[] = [
+  {
+    id: 'pool', name: 'Piscina', emoji: '🏊', description: 'bright · shallow · clear',
+    accentColor: '#6ee3ff', highlightHex: '#6ee3ff', waterHex: '#0087c8',
+    direction: 'top', specular: 2.5, glow: 0.8,
+    level: 0.45, distortionScale: 1.4, rippleStrength: 1.0, rippleRadius: 0.025,
+    bgGradient: 'linear-gradient(175deg, #041e3c 0%, #012240 100%)',
+    gridColor: 'rgba(80,200,255,0.07)',
+  },
+  {
+    id: 'tropical', name: 'Tropical', emoji: '🌴', description: 'warm · turquoise · sunny',
+    accentColor: '#00c88a', highlightHex: '#ffe078', waterHex: '#00a87a',
+    direction: 'top-right', specular: 3.5, glow: 0.6,
+    level: 0.50, distortionScale: 1.0, rippleStrength: 0.8, rippleRadius: 0.030,
+    bgGradient: 'linear-gradient(175deg, #051a18 0%, #031410 100%)',
+    gridColor: 'rgba(80,220,160,0.065)',
+  },
+  {
+    id: 'deep', name: 'Mar Profundo', emoji: '🌊', description: 'dark · vast · bioluminescent',
+    accentColor: '#2060ff', highlightHex: '#2060ff', waterHex: '#00030f',
+    direction: 'top', specular: 1.8, glow: 2.0,
+    level: 0.95, distortionScale: 2.0, rippleStrength: 1.2, rippleRadius: 0.040,
+    bgGradient: 'linear-gradient(175deg, #000008 0%, #00000f 100%)',
+    gridColor: 'rgba(20,60,200,0.05)',
+    autoEffect: (ref) => ref.sea(0.3),
+  },
+  {
+    id: 'toxic', name: 'Toxic Waste', emoji: '☢️', description: 'viscous · neon · corrosive',
+    accentColor: '#80ff00', highlightHex: '#c8ff00', waterHex: '#0a1f00',
+    direction: 'top', specular: 5.0, glow: 1.6,
+    level: 0.80, distortionScale: 0.5, rippleStrength: 0.35, rippleRadius: 0.045,
+    bgGradient: 'linear-gradient(175deg, #060d00 0%, #0a1200 100%)',
+    gridColor: 'rgba(100,255,0,0.055)',
+  },
+  {
+    id: 'blood', name: 'Blood', emoji: '🩸', description: 'thick · viscous · crimson',
+    accentColor: '#cc2000', highlightHex: '#ff3000', waterHex: '#280000',
+    direction: 'top-right', specular: 1.5, glow: 0.4,
+    level: 0.88, distortionScale: 0.3, rippleStrength: 0.25, rippleRadius: 0.050,
+    bgGradient: 'linear-gradient(175deg, #0c0000 0%, #100000 100%)',
+    gridColor: 'rgba(200,20,0,0.045)',
+  },
+  {
+    id: 'pond', name: 'Pond', emoji: '🐸', description: 'murky · still · algae',
+    accentColor: '#668833', highlightHex: '#88c050', waterHex: '#080f02',
+    direction: 'top-left', specular: 1.2, glow: 0.25,
+    level: 0.72, distortionScale: 0.9, rippleStrength: 0.6, rippleRadius: 0.035,
+    bgGradient: 'linear-gradient(175deg, #060e02 0%, #040a01 100%)',
+    gridColor: 'rgba(80,140,20,0.05)',
+  },
+  {
+    id: 'aquarium', name: 'Aquarium', emoji: '🐠', description: 'bright · precise · curated',
+    accentColor: '#50c8e8', highlightHex: '#a0eeff', waterHex: '#001833',
+    direction: 'top', specular: 3.2, glow: 1.0,
+    level: 0.60, distortionScale: 1.6, rippleStrength: 0.7, rippleRadius: 0.018,
+    bgGradient: 'linear-gradient(175deg, #040f1e 0%, #050d1a 100%)',
+    gridColor: 'rgba(80,200,255,0.06)',
+  },
+];
+
+// ─── Scenario dropdown ────────────────────────────────────────────────────────
+
+function ScenarioDropdown({
+  scenarios, activeId, onSelect,
+}: {
+  scenarios: ScenarioConfig[];
+  activeId: string | null;
+  onSelect: (s: ScenarioConfig) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const active = scenarios.find(s => s.id === activeId) ?? null;
+
+  return (
+    <div style={{ position: 'relative' }}>
+      {/* Trigger */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        onBlur={() => setTimeout(() => setOpen(false), 160)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '0.5rem',
+          background: 'rgba(3,12,28,0.82)',
+          backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+          border: `1px solid ${active ? active.accentColor + '55' : 'rgba(50,120,210,0.22)'}`,
+          borderRadius: 8, padding: '6px 10px', cursor: 'pointer',
+          fontFamily: C.sans, width: 220, transition: 'border-color 0.15s',
+        }}
+      >
+        {/* Dot */}
+        <div style={{
+          width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+          background: active ? active.accentColor : C.lo,
+          boxShadow: active ? `0 0 6px ${active.accentColor}` : 'none',
+          transition: 'all 0.2s',
+        }} />
+        {/* Label */}
+        <span style={{
+          flex: 1, textAlign: 'left', fontSize: '0.62rem',
+          color: active ? active.accentColor : C.lo,
+          fontWeight: active ? 500 : 400,
+          transition: 'color 0.15s',
+        }}>
+          {active ? active.name : '· scenarios'}
+        </span>
+        {active && (
+          <span style={{ fontSize: '0.55rem', color: C.lo }}>{active.emoji}</span>
+        )}
+        {/* Chevron */}
+        <span style={{
+          fontSize: '0.55rem', color: C.lo,
+          transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s',
+          display: 'inline-block',
+        }}>▾</span>
+      </button>
+
+      {/* Dropdown list */}
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 6px)', left: 0,
+          width: 260, zIndex: 2,
+          background: 'rgba(3,12,28,0.96)',
+          backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          border: `1px solid rgba(45,120,210,0.22)`,
+          borderRadius: 10, overflow: 'hidden',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.55)',
+        }}>
+          {scenarios.map((s) => {
+            const isActive = s.id === activeId;
+            return (
+              <button
+                key={s.id}
+                onClick={() => { onSelect(s); setOpen(false); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '0.55rem',
+                  width: '100%', padding: '8px 10px',
+                  background: isActive ? `${s.accentColor}12` : 'transparent',
+                  border: 'none', borderBottom: '1px solid rgba(45,120,210,0.10)',
+                  cursor: 'pointer', textAlign: 'left',
+                  transition: 'background 0.12s',
+                  position: 'relative', overflow: 'hidden',
+                }}
+                onMouseEnter={e => {
+                  if (!isActive) e.currentTarget.style.background = `${s.accentColor}0e`;
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = isActive ? `${s.accentColor}12` : 'transparent';
+                }}
+              >
+                {/* Left accent strip */}
+                <div style={{
+                  position: 'absolute', left: 0, top: 0, bottom: 0, width: 2,
+                  background: isActive ? s.accentColor : 'transparent',
+                  transition: 'background 0.12s',
+                }} />
+
+                {/* Emoji */}
+                <span style={{ fontSize: '0.9rem', flexShrink: 0, marginLeft: 6 }}>
+                  {s.emoji}
+                </span>
+
+                {/* Name + description */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontFamily: C.sans, fontSize: '0.62rem', fontWeight: 500,
+                    color: isActive ? s.accentColor : C.hi,
+                    transition: 'color 0.12s',
+                  }}>{s.name}</div>
+                  <div style={{
+                    fontFamily: C.mono, fontSize: '0.48rem', color: C.lo,
+                    marginTop: 1,
+                  }}>{s.description}</div>
+                </div>
+
+                {/* Color pair preview */}
+                <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
+                  <div style={{
+                    width: 12, height: 12, borderRadius: 3,
+                    background: s.highlightHex, border: '1px solid rgba(255,255,255,0.12)',
+                  }} />
+                  <div style={{
+                    width: 12, height: 12, borderRadius: 3,
+                    background: s.waterHex, border: '1px solid rgba(255,255,255,0.12)',
+                  }} />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Panel primitives ─────────────────────────────────────────────────────────
 
 function Section({ label, children }: { label: string; children: ReactNode }) {
@@ -229,8 +443,7 @@ function Swatch({ color, size = 14 }: { color: string; size?: number }) {
 }
 
 function PresetList({
-  value, highlightHex, waterHex,
-  onSelect,
+  value, highlightHex, waterHex, onSelect,
 }: {
   value: WaterLightPreset;
   highlightHex: string;
@@ -253,23 +466,19 @@ function PresetList({
               borderRadius: 6, padding: '5px 8px', cursor: 'pointer',
               transition: 'all 0.12s', textAlign: 'left', width: '100%',
             }}>
-            {/* Active dot */}
             <div style={{
               width: 5, height: 5, borderRadius: '50%', flexShrink: 0,
               background: isActive ? C.accent : 'rgba(85,135,205,0.25)',
               transition: 'background 0.12s',
             }} />
-            {/* Name */}
             <span style={{
               fontFamily: C.mono, fontSize: '0.60rem', flexShrink: 0, width: 76,
               color: isActive ? C.accent : C.mid,
             }}>{p}</span>
-            {/* Desc */}
             <span style={{
               fontFamily: C.sans, fontSize: '0.50rem', color: C.lo, flex: 1,
               overflow: 'hidden', whiteSpace: 'nowrap',
             }}>{PRESET_META[p]}</span>
-            {/* Color swatches: highlight + water */}
             <div style={{ display: 'flex', gap: 3, alignItems: 'center', flexShrink: 0 }}>
               <Swatch color={hl} />
               <Swatch color={wt} />
@@ -277,8 +486,6 @@ function PresetList({
           </button>
         );
       })}
-
-      {/* Custom indicator (shown when user edited colors) */}
       {value === 'custom' && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: '0.45rem',
@@ -311,7 +518,6 @@ function ColorRow({
     <Row label={label} prop={prop}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', cursor: 'pointer' }}
         onClick={() => inputRef.current?.click()}>
-        {/* Swatch */}
         <div style={{
           width: 20, height: 20, borderRadius: 4,
           background: value,
@@ -323,7 +529,6 @@ function ColorRow({
         <code style={{ fontFamily: C.mono, fontSize: '0.60rem', color: C.hi, userSelect: 'none' }}>
           {value}
         </code>
-        {/* Hidden native color input */}
         <input
           ref={inputRef}
           type="color"
@@ -348,12 +553,10 @@ function ColorSetDisplay({ highlightHex, waterHex }: { highlightHex: string; wat
     }}>
       <span style={{ fontFamily: C.sans, fontSize: '0.52rem', color: C.lo, flexShrink: 0 }}>current set</span>
       <div style={{ flex: 1 }} />
-      {/* Highlight swatch + label */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <Swatch color={highlightHex} size={16} />
         <span style={{ fontFamily: C.sans, fontSize: '0.48rem', color: C.lo }}>hi</span>
       </div>
-      {/* Water swatch + label */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <Swatch color={waterHex} size={16} />
         <span style={{ fontFamily: C.sans, fontSize: '0.48rem', color: C.lo }}>water</span>
@@ -507,57 +710,68 @@ export default function DemoV6Page() {
   const [itemDepth, setItemDepth] = useState(0.5);
 
   // Handle — programmatic effects
-  const [rainActive, setRainActive]     = useState(false);
+  const [rainActive, setRainActive]       = useState(false);
   const [rainIntensity, setRainIntensity] = useState(0.5);
   const rainCancelRef = useRef<(() => void) | null>(null);
 
-  const [seaActive, setSeaActive]       = useState(false);
-  const [seaIntensity, setSeaIntensity] = useState(0.5);
+  const [seaActive, setSeaActive]         = useState(false);
+  const [seaIntensity, setSeaIntensity]   = useState(0.5);
   const seaCancelRef = useRef<(() => void) | null>(null);
+
+  const [vibStrength, setVibStrength]     = useState(1.0);
+  const [vibDuration, setVibDuration]     = useState(1000);
+  const [waveDir, setWaveDir]             = useState<'left'|'right'|'top'|'bottom'>('right');
+  const [waveStrength, setWaveStrength]   = useState(1.0);
+  const [trailMode, setTrailMode]         = useState(false);
+
+  const toggleRain = () => {
+    if (rainActive) {
+      rainCancelRef.current?.(); rainCancelRef.current = null; setRainActive(false);
+    } else {
+      rainCancelRef.current = overlayRef.current?.rain(rainIntensity) ?? null; setRainActive(true);
+    }
+  };
+  const onRainIntensityChange = (v: number) => {
+    setRainIntensity(v);
+    if (rainActive) { rainCancelRef.current?.(); rainCancelRef.current = overlayRef.current?.rain(v) ?? null; }
+  };
 
   const toggleSea = () => {
     if (seaActive) {
-      seaCancelRef.current?.();
-      seaCancelRef.current = null;
-      setSeaActive(false);
+      seaCancelRef.current?.(); seaCancelRef.current = null; setSeaActive(false);
     } else {
-      seaCancelRef.current = overlayRef.current?.sea(seaIntensity) ?? null;
-      setSeaActive(true);
+      seaCancelRef.current = overlayRef.current?.sea(seaIntensity) ?? null; setSeaActive(true);
     }
   };
   const onSeaIntensityChange = (v: number) => {
     setSeaIntensity(v);
-    if (seaActive) {
-      seaCancelRef.current?.();
-      seaCancelRef.current = overlayRef.current?.sea(v) ?? null;
-    }
+    if (seaActive) { seaCancelRef.current?.(); seaCancelRef.current = overlayRef.current?.sea(v) ?? null; }
   };
 
-  const [vibStrength, setVibStrength]   = useState(1.0);
-  const [vibDuration, setVibDuration]   = useState(1000);
+  // Scenario state
+  const [activeScenario, setActiveScenario] = useState<string | null>(null);
+  const [scenarioBg,   setScenarioBg]   = useState(`linear-gradient(175deg, #071428 0%, ${C.bg} 100%)`);
+  const [scenarioGrid, setScenarioGrid] = useState('rgba(100,165,255,0.055)');
 
-  const [waveDir, setWaveDir]           = useState<'left'|'right'|'top'|'bottom'>('right');
-  const [waveStrength, setWaveStrength] = useState(1.0);
-
-  const [trailMode, setTrailMode]       = useState(false);
-
-  // Rain toggle
-  const toggleRain = () => {
-    if (rainActive) {
-      rainCancelRef.current?.();
-      rainCancelRef.current = null;
-      setRainActive(false);
-    } else {
-      rainCancelRef.current = overlayRef.current?.rain(rainIntensity) ?? null;
-      setRainActive(true);
-    }
-  };
-  // Sync intensity when slider changes while rain is running
-  const onRainIntensityChange = (v: number) => {
-    setRainIntensity(v);
-    if (rainActive) {
-      rainCancelRef.current?.();
-      rainCancelRef.current = overlayRef.current?.rain(v) ?? null;
+  const applyScenario = (s: ScenarioConfig) => {
+    // Stop any active effects before switching
+    overlayRef.current?.stopEffects();
+    rainCancelRef.current = null; seaCancelRef.current = null;
+    setRainActive(false); setSeaActive(false);
+    // Light
+    setHighlightHex(s.highlightHex); setWaterHex(s.waterHex);
+    setPreset('custom'); setLightDir(s.direction);
+    setSpecular(s.specular); setGlow(s.glow);
+    // Global / Material / Interaction
+    setLevel(s.level); setDistortionScale(s.distortionScale);
+    setRippleStrength(s.rippleStrength); setRippleRadius(s.rippleRadius);
+    // Scene background
+    setScenarioBg(s.bgGradient); setScenarioGrid(s.gridColor);
+    setActiveScenario(s.id);
+    // Optional auto-effect (deferred so WaterOverlay has re-rendered with new props)
+    if (s.autoEffect) {
+      setTimeout(() => { if (overlayRef.current) s.autoEffect!(overlayRef.current); }, 120);
+      if (s.id === 'deep') { seaCancelRef.current = null; setSeaActive(true); }
     }
   };
 
@@ -587,19 +801,20 @@ export default function DemoV6Page() {
 
       {/* ── Underwater scene (distorted by waves) ─────────────────────────── */}
       <div
-        style={{ position: 'absolute', inset: 0,
-          background: `linear-gradient(175deg, #071428 0%, ${C.bg} 100%)`,
+        style={{
+          position: 'absolute', inset: 0,
+          background: scenarioBg,
           cursor: trailMode ? 'crosshair' : 'default',
+          transition: 'background 0.6s ease',
         }}
         onPointerMove={trailMode ? e => overlayRef.current?.trail(e.clientX, e.clientY) : undefined}
       >
-
-        {/* Grid texture */}
+        {/* Grid texture — color adapts to scenario */}
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
           backgroundImage: `
-            linear-gradient(rgba(100,165,255,0.055) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(100,165,255,0.055) 1px, transparent 1px)
+            linear-gradient(${scenarioGrid} 1px, transparent 1px),
+            linear-gradient(90deg, ${scenarioGrid} 1px, transparent 1px)
           `,
           backgroundSize: '36px 36px',
         }} />
@@ -612,14 +827,12 @@ export default function DemoV6Page() {
           boxSizing: 'border-box',
           flexDirection: 'column', gap: '1.5rem',
         }}>
-          {/* Fixed depth cards */}
           <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', justifyContent: 'center' }}>
             <DepthCard depth={0}    label="Surface"   />
             <DepthCard depth={0.45} label="Mid"       />
             <DepthCard depth={0.90} label="Deep"      />
           </div>
 
-          {/* Interactive depth card */}
           <WaterItem depth={itemDepth} style={{ width: '100%', maxWidth: 430 }}>
             <div style={{
               background: 'rgba(0,20,55,0.72)',
@@ -661,11 +874,11 @@ export default function DemoV6Page() {
         </div>
       </div>
 
-      {/* ── Float: API control panel above the water (no distortion) ──────── */}
+      {/* ── Float: title + scenario selector + API panel ──────────────────── */}
       <Float>
-        {/* Page title — top-left */}
-        <div style={{ position: 'absolute', top: '1.6rem', left: '1.6rem',
-          pointerEvents: 'none' }}>
+
+        {/* Page title — top-left, no pointer events */}
+        <div style={{ position: 'absolute', top: '1.6rem', left: '1.6rem', pointerEvents: 'none' }}>
           <p style={{ fontFamily: C.sans, fontSize: '0.55rem', letterSpacing: '0.18em',
             textTransform: 'uppercase', color: C.lo, margin: '0 0 0.3rem' }}>
             ripple / v6
@@ -677,16 +890,24 @@ export default function DemoV6Page() {
           </h1>
         </div>
 
+        {/* Scenario dropdown — interactive, below title */}
+        <div style={{ position: 'absolute', top: '5.6rem', left: '1.6rem',
+          pointerEvents: 'auto', zIndex: 1 }}>
+          <ScenarioDropdown
+            scenarios={SCENARIOS}
+            activeId={activeScenario}
+            onSelect={applyScenario}
+          />
+        </div>
+
         {/* API Panel — right sidebar */}
         <div style={panelStyle}>
-          {/* Panel header */}
           <div style={{ marginBottom: '0.5rem' }}>
             <p style={{ fontFamily: C.sans, fontSize: '0.50rem', letterSpacing: '0.18em',
               textTransform: 'uppercase', color: C.lo, margin: '0 0 0.2rem' }}>
               api explorer
             </p>
-            <p style={{ fontFamily: C.mono, fontSize: '0.70rem', color: C.accent,
-              margin: 0 }}>
+            <p style={{ fontFamily: C.mono, fontSize: '0.70rem', color: C.accent, margin: 0 }}>
               WaterOverlay v6
             </p>
           </div>
@@ -703,22 +924,13 @@ export default function DemoV6Page() {
 
           {/* ── Light ────────────────────────────────────────────────────── */}
           <Section label="Light">
-            {/* Current color set summary */}
             <ColorSetDisplay highlightHex={highlightHex} waterHex={waterHex} />
-
-            {/* Preset list */}
             <div style={{ fontFamily: C.sans, fontSize: '0.50rem', color: C.lo,
               letterSpacing: '0.10em', marginTop: '0.15rem', marginBottom: '0.1rem' }}>
               presets
             </div>
-            <PresetList
-              value={preset}
-              highlightHex={highlightHex}
-              waterHex={waterHex}
-              onSelect={selectPreset}
-            />
-
-            {/* Per-channel color inputs */}
+            <PresetList value={preset} highlightHex={highlightHex} waterHex={waterHex}
+              onSelect={selectPreset} />
             <div style={{ fontFamily: C.sans, fontSize: '0.50rem', color: C.lo,
               letterSpacing: '0.10em', marginTop: '0.35rem', marginBottom: '0.1rem' }}>
               custom colors
@@ -727,8 +939,6 @@ export default function DemoV6Page() {
               value={highlightHex} onChange={onHighlightChange} />
             <ColorRow label="water body" prop="material.tint"
               value={waterHex} onChange={onWaterChange} />
-
-            {/* Light direction & multipliers */}
             <div style={{ fontFamily: C.sans, fontSize: '0.50rem', color: C.lo,
               letterSpacing: '0.10em', marginTop: '0.35rem', marginBottom: '0.1rem' }}>
               direction & intensity
@@ -754,8 +964,7 @@ export default function DemoV6Page() {
               min={0} max={2} value={rippleStrength} onChange={setRippleStrength} />
             <SliderRow label="radius" prop="interaction.rippleRadius"
               min={0.005} max={0.08} step={0.001} value={rippleRadius}
-              onChange={setRippleRadius}
-              fmt={v => v.toFixed(3)} />
+              onChange={setRippleRadius} fmt={v => v.toFixed(3)} />
           </Section>
 
           {/* ── Performance ──────────────────────────────────────────────── */}
@@ -774,53 +983,38 @@ export default function DemoV6Page() {
           {/* ── Handle ───────────────────────────────────────────────────── */}
           <Section label="Handle">
 
-            {/* splash() */}
             <Row label="single ripple" prop="ref.splash()">
-              <EffectBtn onClick={() => overlayRef.current?.splash()}>
-                ◎ splash
-              </EffectBtn>
+              <EffectBtn onClick={() => overlayRef.current?.splash()}>◎ splash</EffectBtn>
             </Row>
 
-            {/* rain() */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
               <SliderRow label="rain intensity" prop="ref.rain(intensity)"
                 min={0.05} max={1} step={0.01} value={rainIntensity}
                 onChange={onRainIntensityChange} />
               <Row label="" prop="">
-                <EffectBtn
-                  active={rainActive}
-                  onClick={toggleRain}
-                  style={{ minWidth: 96 }}
-                >
+                <EffectBtn active={rainActive} onClick={toggleRain} style={{ minWidth: 96 }}>
                   {rainActive ? '■ stop rain' : '▼ start rain'}
                 </EffectBtn>
               </Row>
             </div>
 
-            {/* sea() */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
               <SliderRow label="sea intensity" prop="ref.sea(intensity)"
                 min={0.05} max={1} step={0.01} value={seaIntensity}
                 onChange={onSeaIntensityChange} />
               <Row label="" prop="">
-                <EffectBtn
-                  active={seaActive}
-                  onClick={toggleSea}
-                  style={{ minWidth: 96 }}
-                >
+                <EffectBtn active={seaActive} onClick={toggleSea} style={{ minWidth: 96 }}>
                   {seaActive ? '■ calm sea' : '≋ start sea'}
                 </EffectBtn>
               </Row>
             </div>
 
-            {/* vibration() */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
               <SliderRow label="vib strength" prop="ref.vibration(strength)"
                 min={0} max={2} value={vibStrength} onChange={setVibStrength} />
               <SliderRow label="vib duration" prop="ref.vibration(_, ms)"
                 min={200} max={4000} step={100} value={vibDuration}
-                onChange={setVibDuration}
-                fmt={v => `${Math.round(v)}ms`} />
+                onChange={setVibDuration} fmt={v => `${Math.round(v)}ms`} />
               <Row label="" prop="">
                 <EffectBtn onClick={() => overlayRef.current?.vibration(vibStrength, vibDuration)}>
                   ⚡ vibrate
@@ -828,7 +1022,6 @@ export default function DemoV6Page() {
               </Row>
             </div>
 
-            {/* wave() */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
               <SliderRow label="wavefront" prop="ref.wave(dir, strength)"
                 min={0} max={2} value={waveStrength} onChange={setWaveStrength} />
@@ -856,7 +1049,6 @@ export default function DemoV6Page() {
               </Row>
             </div>
 
-            {/* trail() */}
             <Row label="hover trail" prop="ref.trail(x, y)">
               <button onClick={() => setTrailMode(m => !m)}
                 style={{
@@ -876,15 +1068,12 @@ export default function DemoV6Page() {
               </div>
             )}
 
-            {/* stopEffects() */}
             <Row label="stop all" prop="ref.stopEffects()">
               <EffectBtn
                 onClick={() => {
                   overlayRef.current?.stopEffects();
-                  rainCancelRef.current = null;
-                  seaCancelRef.current  = null;
-                  setRainActive(false);
-                  setSeaActive(false);
+                  rainCancelRef.current = null; seaCancelRef.current = null;
+                  setRainActive(false); setSeaActive(false);
                 }}
                 danger
               >
